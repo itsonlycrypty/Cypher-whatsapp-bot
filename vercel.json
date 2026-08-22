@@ -1,9 +1,4 @@
 {
   "version": 2,
-  "functions": {
-    "api/server1.js": { "maxDuration": 10 },
-    "api/server2.js": { "maxDuration": 10 },
-    "api/server3.js": { "maxDuration": 10 }
-  },
   "rewrites": [{ "source": "/(.*)", "destination": "/" }]
 }
