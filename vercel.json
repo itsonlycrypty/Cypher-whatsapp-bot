@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "regions": ["fra1", "sfo1", "dub1"],
   "functions": {
     "api/pair.js": {
       "maxDuration": 10
