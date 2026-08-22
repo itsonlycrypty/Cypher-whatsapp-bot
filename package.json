@@ -1,5 +1,5 @@
 {
-  "name": "cypher-whatsapp-bot",
+  "name": "cypher-pairing-site",
   "version": "1.0.0",
   "dependencies": {
     "@whiskeysockets/baileys": "^6.7.0"
