@@ -55,13 +55,31 @@
       border: 1px solid #2a2a3e;
       padding: 4px;
       transition: border 0.2s;
+      margin-bottom: 12px;
     }
     .input-group:focus-within { border-color: #8b5cf6; box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2); }
-    .input-group span { padding: 0 12px; color: #8b8ba3; font-weight: 600; font-size: 15px; }
-    input {
+    .input-group select {
       background: transparent;
       border: none;
-      padding: 16px 12px;
+      padding: 14px 8px 14px 12px;
+      font-size: 16px;
+      color: #fff;
+      outline: none;
+      font-weight: 500;
+      width: 110px;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238b8ba3' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      background-size: 12px;
+      padding-right: 34px;
+    }
+    .input-group select option { background: #16161f; color: #fff; }
+    .input-group input {
+      background: transparent;
+      border: none;
+      padding: 14px 12px;
       font-size: 16px;
       color: #fff;
       width: 100%;
@@ -69,10 +87,10 @@
       font-weight: 500;
       letter-spacing: 0.5px;
     }
-    input::placeholder { color: #4a4a5a; font-weight: 400; }
+    .input-group input::placeholder { color: #4a4a5a; font-weight: 400; }
     button {
       width: 100%;
-      margin-top: 20px;
+      margin-top: 12px;
       padding: 16px;
       background: linear-gradient(135deg, #8b5cf6, #6366f1);
       border: none;
@@ -129,31 +147,43 @@
     <div class="sub">Uncensored · Unrestricted</div>
     <div class="badge">🔐 Pair Your Bot</div>
 
-    <label for="phone">WhatsApp Number</label>
+    <label for="country">Country Code</label>
     <div class="input-group">
-      <span>+</span>
-      <input type="tel" id="phone" placeholder="2347016334222" value="2347016334222" />
+      <select id="country">
+        <option value="234">🇳🇬 Nigeria (+234)</option>
+        <option value="1">🇺🇸 USA (+1)</option>
+        <option value="44">🇬🇧 UK (+44)</option>
+        <option value="91">🇮🇳 India (+91)</option>
+      </select>
+    </div>
+
+    <label for="phone">Local Number</label>
+    <div class="input-group">
+      <input type="tel" id="phone" placeholder="7016334222" value="7016334222" />
     </div>
 
     <button id="pairBtn">🚀 GENERATE PAIRING CODE</button>
 
     <div id="result">
-      <span class="info-text">Enter your number and tap generate</span>
+      <span class="info-text">Select country, enter number, then tap generate</span>
     </div>
-    <div class="note">The 8-digit code will appear here. Open WhatsApp → Linked Devices → Link with Phone Number.</div>
+    <div class="note">The 8‑digit code will appear here. Open WhatsApp → Linked Devices → Link with Phone Number.</div>
   </div>
 
   <script>
     const btn = document.getElementById('pairBtn');
+    const countrySelect = document.getElementById('country');
     const phoneInput = document.getElementById('phone');
     const resultDiv = document.getElementById('result');
 
     btn.addEventListener('click', async () => {
-      const phone = phoneInput.value.replace(/\D/g, '');
-      if (!phone) {
-        resultDiv.innerHTML = `<span class="error-text">❌ Please enter your number.</span>`;
+      const countryCode = countrySelect.value;
+      const localNumber = phoneInput.value.replace(/\D/g, '');
+      if (!localNumber) {
+        resultDiv.innerHTML = `<span class="error-text">❌ Please enter your local number.</span>`;
         return;
       }
+      const fullNumber = countryCode + localNumber;
 
       btn.disabled = true;
       btn.textContent = '⏳ Generating...';
@@ -163,7 +193,8 @@
       const timeoutId = setTimeout(() => controller.abort(), 15000);
 
       try {
-        const response = await fetch(`/api/pair?phone=${phone}`, {
+        // Send both parts separately to the API
+        const response = await fetch(`/api/pair?country=${countryCode}&number=${localNumber}`, {
           signal: controller.signal
         });
         clearTimeout(timeoutId);
@@ -172,7 +203,7 @@
 
         if (data.success) {
           resultDiv.innerHTML = `
-            <span style="font-size:14px; color:#8b8ba3; margin-bottom:4px;">✅ Your 8-digit code:</span>
+            <span style="font-size:14px; color:#8b8ba3; margin-bottom:4px;">✅ Your 8‑digit code:</span>
             <div class="code-display">${data.code}</div>
             <span style="font-size:12px; color:#6b6b83; margin-top:4px;">Enter this in WhatsApp to link</span>
           `;
@@ -192,4 +223,4 @@
     });
   </script>
 </body>
-    </html>
+  </html>
