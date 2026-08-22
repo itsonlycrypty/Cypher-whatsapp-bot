@@ -3,8 +3,5 @@
   "version": "1.0.0",
   "dependencies": {
     "@whiskeysockets/baileys": "^6.7.0"
-  },
-  "engines": {
-    "node": "18.x"
   }
 }
