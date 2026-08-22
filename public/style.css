@@ -85,20 +85,73 @@ button:hover {
     transform: scale(1.02);
 }
 
-.qr-container {
+.code-box {
     margin-top: 20px;
     padding: 20px;
-    background: #fff;
+    border: 1px solid #ff003c;
     border-radius: 8px;
+    background: #110508;
     display: none;
 }
 
-.qr-container.show {
+.code-box.show {
     display: block;
 }
 
-.qr-container canvas {
-    max-width: 200px;
+.code-box p {
+    color: #ff6688;
+    margin-bottom: 10px;
+}
+
+.code-display {
+    font-size: 32px;
+    font-weight: bold;
+    color: #ff003c;
+    letter-spacing: 8px;
+    padding: 15px;
+    background: #000;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    font-family: monospace;
+}
+
+.copy-btn {
+    width: auto;
+    padding: 8px 20px;
+    background: transparent;
+    border: 1px solid #ff003c;
+    color: #ff003c;
+    font-size: 14px;
+}
+
+.copy-btn:hover {
+    background: #ff003c;
+    color: #fff;
+}
+
+.instructions {
+    margin-top: 25px;
+    padding: 20px;
+    background: #0a0a0a;
+    border-radius: 8px;
+    text-align: left;
+    display: none;
+}
+
+.instructions.show {
+    display: block;
+}
+
+.instructions h3 {
+    color: #ff003c;
+    margin-bottom: 12px;
+    text-align: center;
+}
+
+.instructions p {
+    margin: 8px 0;
+    color: #ccc;
+    font-size: 13px;
 }
 
 .status {
