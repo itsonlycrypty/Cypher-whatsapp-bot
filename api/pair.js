@@ -1,104 +1,71 @@
-const { makeWASocket, useMultiFileAuthState, DisconnectReason } = require('@whiskeysockets/baileys')
-
-// Store active pairing sessions
-const sessions = new Map()
+const { makeWASocket } = require('@whiskeysockets/baileys')
 
 module.exports = async (req, res) => {
-    res.setHeader('Access-Control-Allow-Origin', '*')
-    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
-    
-    if (req.method === 'OPTIONS') return res.status(200).end()
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+  
+  if (req.method === 'OPTIONS') return res.status(200).end()
 
-    const { phone, sessionId } = req.query
+  const phone = (req.query.phone || '').replace(/\D/g, '')
+  if (!phone) return res.status(400).json({ success: false, error: 'Phone number required' })
 
-    // Check existing session status
-    if (sessionId && sessions.has(sessionId)) {
-        const session = sessions.get(sessionId)
-        return res.json({ 
-            success: true, 
-            paired: session.paired, 
-            code: session.code 
-        })
+  let codeSent = false
+  let timeoutReached = false
+
+  const timeout = setTimeout(() => {
+    timeoutReached = true
+    if (!codeSent) {
+      codeSent = true
+      return res.status(503).json({
+        success: false,
+        error: 'WhatsApp server timeout — please try again'
+      })
     }
+  }, 25000) // 25 seconds — just under Vercel's 30s limit
 
-    if (!phone) {
-        return res.status(400).json({ success: false, error: "Phone number required" })
-    }
+  try {
+    const sock = makeWASocket({
+      auth: { creds: {}, keys: {} },
+      printQRInTerminal: false,
+      syncFullHistory: false,
+      connectTimeoutMs: 15000,
+      retryRequestDelayMs: 500
+    })
 
-    // Clean phone number — remove +, spaces, etc.
-    const cleanPhone = phone.replace(/\D/g, '')
-    const sessionId = Date.now().toString()
-    
-    try {
-        // Create auth state for this session
-        const { state, saveCreds } = await useMultiFileAuthState(`auth-${sessionId}`)
-        
-        // Initialize Baileys socket
-        const sock = makeWASocket({
-            auth: state,
-            printQRInTerminal: false,
-            syncFullHistory: false
-        })
-
-        sessions.set(sessionId, { sock, code: null, paired: false })
-
-        // Connection handler — THIS IS WHERE THE MAGIC HAPPENS
-        sock.ev.on('connection.update', async (update) => {
-            const { connection, qr, isNewLogin } = update
-            
-            // ⚡ REQUEST PAIRING CODE FROM WHATSAPP SERVERS
-            if (connection === 'connecting') {
-                try {
-                    // THIS IS THE REAL FUNCTION — ASKS WHATSAPP FOR THE CODE
-                    const code = await sock.requestPairingCode(cleanPhone)
-                    sessions.get(sessionId).code = code
-                    console.log(`≡ Pairing code for ${cleanPhone}: ${code}`
-                } catch (err) {
-                    console.error("≡ Error requesting pairing code:", err)
-                    sessions.delete(sessionId)
-                }
-            }
-
-            // ✅ SUCCESSFULLY PAIRED!
-            if (connection === 'open') {
-                sessions.get(sessionId).paired = true
-                console.log(`≡ SUCCESS: Device paired with ${cleanPhone}`)
-                await saveCreds()
-            }
-
-            // Handle disconnection
-            if (connection === 'close') {
-                const reason = DisconnectReason[update.lastDisconnect?.error?.output?.statusCode]
-                console.log(`≡ Connection closed: ${reason}`)
-                // Clean up after 5 minutes
-                setTimeout(() => sessions.delete(sessionId), 300000)
-            }
-        })
-
-        // Wait briefly for code to generate
-        await new Promise(resolve => setTimeout(resolve, 3000))
-        
-        const session = sessions.get(sessionId)
-        if (!session?.code) {
-            return res.status(500).json({ 
-                success: false, 
-                error: "Could not generate pairing code. Please try again." 
+    sock.ev.on('connection.update', async (update) => {
+      if (timeoutReached || codeSent) return
+      
+      if (update.connection === 'connecting') {
+        try {
+          const code = await sock.requestPairingCode(phone)
+          if (!codeSent) {
+            codeSent = true
+            clearTimeout(timeout)
+            sock.end()
+            return res.json({
+              success: true,
+              code: code,
+              message: 'Enter in WhatsApp → Settings → Linked Devices → Link with phone number'
             })
+          }
+        } catch (err) {
+          if (!codeSent) {
+            codeSent = true
+            clearTimeout(timeout)
+            sock.end()
+            return res.status(500).json({
+              success: false,
+              error: err.message.includes('rate') ? 'Too many requests — wait 1 minute' : 'Could not generate code — try again'
+            })
+          }
         }
-
-        return res.json({
-            success: true,
-            sessionId,
-            code: session.code,
-            message: "Enter this code in WhatsApp → Settings → Linked Devices → Link with phone number"
-        })
-
-    } catch (error) {
-        console.error("≡ API Error:", error)
-        return res.status(500).json({ 
-            success: false, 
-            error: error.message || "Server error" 
-        })
+      }
+    })
+  } catch (err) {
+    if (!codeSent) {
+      clearTimeout(timeout)
+      return res.status(500).json({ success: false, error: 'Server error — please retry' })
     }
+  }
 }
