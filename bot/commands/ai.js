@@ -1,6 +1,6 @@
 const fetch = require('node-fetch')
 
-const GROQ_API_KEY = "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"
+const GROQ_API_KEY = "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"
 const API_URL = "https://api.groq.com/openai/v1/chat/completions"
 
 const chatHistory = new Map()
