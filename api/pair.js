@@ -1,45 +1,42 @@
 const { makeWASocket, Browsers } = require('@whiskeysockets/baileys');
 
 module.exports = async (req, res) => {
-  // 1. CORS & Headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Content-Type', 'application/json');
 
-  // 2. Get phone number (remove spaces/symbols)
   const phone = (req.query.phone || '').replace(/\D/g, '');
-  if (!phone) {
-    return res.status(400).json({ success: false, error: 'Phone number is required' });
+  if (!phone || phone.length < 10) {
+    return res.status(400).json({ success: false, error: 'Valid phone number required (e.g., 2347016334222)' });
   }
 
   try {
-    // 3. Create a TEMPORARY socket (no disk writes, pure memory)
-    const sock = makeWASocket({
-      auth: { creds: {}, keys: {} },
-      printQRInTerminal: false,
-      syncFullHistory: false,
-      browser: Browsers.macOS('Safari'), // Makes WhatsApp trust the connection
-    });
+    // Race between the pairing code and a 12s timeout
+    const code = await Promise.race([
+      new Promise(async (resolve, reject) => {
+        try {
+          const sock = makeWASocket({
+            auth: { creds: {}, keys: {} },
+            printQRInTerminal: false,
+            syncFullHistory: false,
+            browser: Browsers.macOS('Safari'),
+          });
+          const pairCode = await sock.requestPairingCode(phone);
+          sock.end();
+          resolve(pairCode);
+        } catch (err) {
+          reject(err);
+        }
+      }),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout – WhatsApp server took too long')), 12000))
+    ]);
 
-    // 4. THE MAGIC LINE: Request the 8-digit pairing code directly.
-    //    This handles the connection internally and resolves FAST (~3-5 seconds).
-    const code = await sock.requestPairingCode(phone);
-
-    // 5. Close the socket immediately
-    sock.end();
-
-    // 6. Return the 8-digit code as JSON
-    return res.status(200).json({
-      success: true,
-      code: code,
-      note: "Enter this 8-digit code in WhatsApp > Linked Devices > Link with Phone Number"
-    });
+    return res.status(200).json({ success: true, code });
 
   } catch (error) {
-    console.error('Pairing error:', error);
-    // IMPORTANT: Always return JSON, NEVER let Vercel return HTML
+    console.error('Pairing error:', error.message);
     return res.status(500).json({
       success: false,
-      error: error.message || 'Failed to generate code. Check your number (e.g., 2347016334222).'
+      error: error.message || 'Unknown error – check your number and try again'
     });
   }
 };
