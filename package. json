@@ -1,0 +1,21 @@
+{
+  "name": "cypher-whatsapp-bot",
+  "version": "1.0.0",
+  "description": "CYPHER v1 — WhatsApp Bot with 200+ Commands",
+  "main": "bot/index.js",
+  "scripts": {
+    "dev": "node bot/index.js",
+    "start": "node bot/index.js",
+    "deploy": "vercel --prod"
+  },
+  "dependencies": {
+    "baileys": "^6.7.0",
+    "express": "^4.19.2",
+    "node-fetch": "^2.7.0",
+    "qrcode": "^1.5.3",
+    "axios": "^1.7.0"
+  },
+  "keywords": ["whatsapp", "bot", "cypher", "ai"],
+  "author": "Crypty",
+  "license": "MIT"
+}
