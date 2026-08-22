@@ -1,7 +1,10 @@
 {
   "version": 2,
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/$1" },
-    { "source": "/(.*)", "destination": "/public/$1" }
-  ]
+  "functions": {
+    "api/pair.js": {
+      "maxDuration": 10,
+      "regions": ["fra1", "sfo1", "dub1"]
+    }
+  },
+  "rewrites": [{ "source": "/(.*)", "destination": "/" }]
 }
