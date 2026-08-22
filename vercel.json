@@ -1,8 +1,17 @@
 {
   "version": 2,
   "functions": {
-    "api/pair.js": {
-      "maxDuration": 10
+    "api/server1.js": {
+      "maxDuration": 10,
+      "regions": ["sfo1"]
+    },
+    "api/server2.js": {
+      "maxDuration": 10,
+      "regions": ["fra1"]
+    },
+    "api/server3.js": {
+      "maxDuration": 10,
+      "regions": ["dub1"]
     }
   },
   "rewrites": [{ "source": "/(.*)", "destination": "/" }]
