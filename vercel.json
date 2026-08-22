@@ -1,14 +1,5 @@
 {
   "version": 2,
-  "buildCommand": "npm install",
-  "outputDirectory": "public",
-  "installCommand": "npm install --no-audit",
-  "functions": {
-    "api/pair.js": {
-      "runtime": "@vercel/node@3",
-      "maxDuration": 30
-    }
-  },
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/(.*)", "destination": "/public/$1" }
