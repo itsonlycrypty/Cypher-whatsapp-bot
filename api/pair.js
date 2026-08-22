@@ -2,70 +2,41 @@ const { makeWASocket } = require('@whiskeysockets/baileys')
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+  res.setHeader('Content-Type', 'application/json')
   
-  if (req.method === 'OPTIONS') return res.status(200).end()
-
   const phone = (req.query.phone || '').replace(/\D/g, '')
-  if (!phone) return res.status(400).json({ success: false, error: 'Phone number required' })
-
-  let codeSent = false
-  let timeoutReached = false
-
-  const timeout = setTimeout(() => {
-    timeoutReached = true
-    if (!codeSent) {
-      codeSent = true
-      return res.status(503).json({
-        success: false,
-        error: 'WhatsApp server timeout — please try again'
-      })
-    }
-  }, 25000) // 25 seconds — just under Vercel's 30s limit
+  if (!phone) return res.status(400).json({ success: false, error: 'Phone required' })
 
   try {
     const sock = makeWASocket({
       auth: { creds: {}, keys: {} },
       printQRInTerminal: false,
-      syncFullHistory: false,
-      connectTimeoutMs: 15000,
-      retryRequestDelayMs: 500
+      syncFullHistory: false
     })
 
-    sock.ev.on('connection.update', async (update) => {
-      if (timeoutReached || codeSent) return
-      
-      if (update.connection === 'connecting') {
+    let code = null
+    
+    sock.ev.on('connection.update', async (u) => {
+      if (u.connection === 'connecting' && !code) {
         try {
-          const code = await sock.requestPairingCode(phone)
-          if (!codeSent) {
-            codeSent = true
-            clearTimeout(timeout)
-            sock.end()
-            return res.json({
-              success: true,
-              code: code,
-              message: 'Enter in WhatsApp → Settings → Linked Devices → Link with phone number'
-            })
-          }
-        } catch (err) {
-          if (!codeSent) {
-            codeSent = true
-            clearTimeout(timeout)
-            sock.end()
-            return res.status(500).json({
-              success: false,
-              error: err.message.includes('rate') ? 'Too many requests — wait 1 minute' : 'Could not generate code — try again'
-            })
-          }
+          code = await sock.requestPairingCode(phone)
+          sock.end()
+          res.json({ success: true, code })
+        } catch (e) {
+          sock.end()
+          res.status(500).json({ success: false, error: e.message })
         }
       }
     })
-  } catch (err) {
-    if (!codeSent) {
-      clearTimeout(timeout)
-      return res.status(500).json({ success: false, error: 'Server error — please retry' })
-    }
+
+    setTimeout(() => {
+      if (!code) {
+        sock.end()
+        res.status(504).json({ success: false, error: 'Timeout — please try again' })
+      }
+    }, 20000)
+
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message })
   }
 }
