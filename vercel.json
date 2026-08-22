@@ -1,9 +1,9 @@
 {
   "version": 2,
+  "regions": ["fra1", "sfo1", "dub1"],
   "functions": {
     "api/pair.js": {
-      "maxDuration": 10,
-      "regions": ["fra1", "sfo1", "dub1"]
+      "maxDuration": 10
     }
   },
   "rewrites": [{ "source": "/(.*)", "destination": "/" }]
