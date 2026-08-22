@@ -81,23 +81,23 @@ async function startBot(authFolder = 'auth') {
         try {
             if (commands[cmd]) {
                 await commands[cmd].execute(sock, msg, args, { senderNumber, isOwner, isGroup, BOT_NAME, VERSION, OWNER_NAME, DEVELOPER })
-            } 
+            }
             // ========== MAIN MENU COMMAND ==========
             else if (cmd === "menu" || cmd === "start" || cmd === "help") {
                 await sendFullMenu(sock, sender)
-            } 
+            }
             else if (cmd === "allcmds") {
                 await sendAllCommands(sock, sender)
-            } 
+            }
             else if (cmd === "info" || cmd === "about") {
                 await sendBotInfo(sock, sender)
-            } 
+            }
             else if (cmd === "uptime") {
                 await sock.sendMessage(sender, { text: `≡ Uptime: ${getUptime()}` })
-            } 
+            }
             else {
-                await sock.sendMessage(sender, { 
-                    text: `⟡ Warning: Command ".${cmd}" not found\nType ${PREFIX}menu for all commands.` 
+                await sock.sendMessage(sender, {
+                    text: `⟡ Warning: Command ".${cmd}" not found\nType ${PREFIX}menu for all commands.`
                 })
             }
         } catch (err) {
@@ -112,19 +112,19 @@ async function startBot(authFolder = 'auth') {
 // ========== FULL MENU WITH IMAGE + INFO ==========
 async function sendFullMenu(sock, jid) {
     const uptime = getUptime()
-    
+
     // Menu Text — With Owner Info
     let text = `≡ ${BOT_NAME} v${VERSION} — MAIN MENU ≡\n\n`
     text += `╭───────────────────────\n`
-    text += `◇ 𝗢𝘄𝗻𝗲𝗿: ${OWNER_NAME}\n`
-    text += `◇ 𝗔𝘀𝘀𝗶𝘀𝘁𝗲𝗱 𝗯𝘆: ${DEVELOPER}\n`
-    text += `◇ 𝗩𝗲𝗿𝘀𝗶𝗼𝗻: ${VERSION}\n`
-    text += `◇ 𝗨𝗽𝘁𝗶𝗺𝗲: ${uptime}\n`
-    text += `◇ 𝗖𝗼𝗺𝗺𝗮𝗻𝗱𝘀: ${Object.keys(commands).length}+\n`
-    text += `◇ 𝗣𝗿𝗲𝗳𝗶𝘅: ${PREFIX}\n`
+    text += `◇ Owner: ${OWNER_NAME}\n`
+    text += `◇ Assisted by: ${DEVELOPER}\n`
+    text += `◇ Version: ${VERSION}\n`
+    text += `◇ Uptime: ${uptime}\n`
+    text += `◇ Commands: ${Object.keys(commands).length}+\n`
+    text += `◇ Prefix: ${PREFIX}\n`
     text += `╰───────────────────────\n\n`
-    
-    text += `≡ 𝗖𝗔𝗧𝗘𝗚𝗢𝗥𝗜𝗘𝗦:\n\n`
+
+    text += `≡ CATEGORIES:\n\n`
     text += `◇ ${PREFIX}ai — AI Chat\n`
     text += `◇ ${PREFIX}fun — Fun & Games\n`
     text += `◇ ${PREFIX}tools — Utilities\n`
@@ -132,13 +132,13 @@ async function sendFullMenu(sock, jid) {
     text += `◇ ${PREFIX}download — Media Downloaders\n`
     text += `◇ ${PREFIX}system — System Info\n`
     text += `◇ ${PREFIX}allcmds — Full Command List\n\n`
-    
+
     text += `> ≡ "No filters. No limits. Just pure intelligence." ≡\n`
     text += `> Created by ${OWNER_NAME} • Assisted by ${DEVELOPER}`
 
-    // Send Menu WITH IMAGE — Replace 'image_url' with your official bot image
-    await sock.sendMessage(jid, { 
-        image: { url: "https://i.imgur.com/REPLACE_WITH_YOUR_IMAGE_URL.jpg" },
+    // Send Menu WITH YOUR OFFICIAL BOT IMAGE — URL ALREADY INSERTED
+    await sock.sendMessage(jid, {
+        image: { url: "https://i.imgur.com/E9BZ9dP.png" },
         caption: text
     })
 }
@@ -147,23 +147,23 @@ async function sendFullMenu(sock, jid) {
 async function sendBotInfo(sock, jid) {
     const uptime = getUptime()
     const text = `≡ ${BOT_NAME} v${VERSION} — BOT INFO ≡\n\n`
-        + `◇ 𝗢𝘄𝗻𝗲𝗿: ${OWNER_NAME}\n`
-        + `◇ 𝗔𝘀𝘀𝗶𝘀𝘁𝗲𝗱 𝗯𝘆: ${DEVELOPER}\n`
-        + `◇ 𝗩𝗲𝗿𝘀𝗶𝗼𝗻: ${VERSION}\n`
-        + `◇ 𝗨𝗽𝘁𝗶𝗺𝗲: ${uptime}\n`
-        + `◇ 𝗖𝗼𝗺𝗺𝗮𝗻𝗱𝘀: ${Object.keys(commands).length}+\n`
-        + `◇ 𝗦𝘁𝗮𝘁𝘂𝘀: ✅ 𝗢𝗻𝗹𝗶𝗻𝗲\n`
-        + `◇ 𝗣𝗿𝗲𝗳𝗶𝘅: ${PREFIX}\n\n`
+        + `◇ Owner: ${OWNER_NAME}\n`
+        + `◇ Assisted by: ${DEVELOPER}\n`
+        + `◇ Version: ${VERSION}\n`
+        + `◇ Uptime: ${uptime}\n`
+        + `◇ Commands: ${Object.keys(commands).length}+\n`
+        + `◇ Status: ✅ Online\n`
+        + `◇ Prefix: ${PREFIX}\n\n`
         + `> ≡ "No filters. No limits. Just pure intelligence." ≡`
-    
+
     await sock.sendMessage(jid, { text })
 }
 
 // ========== ALL COMMANDS LIST ==========
 async function sendAllCommands(sock, jid) {
     const cmdList = Object.keys(commands).map(c => `${PREFIX}${c}`).join("\n")
-    await sock.sendMessage(jid, { 
-        text: `≡ ALL ${Object.keys(commands).length} COMMANDS:\n\n${cmdList}` 
+    await sock.sendMessage(jid, {
+        text: `≡ ALL ${Object.keys(commands).length} COMMANDS:\n\n${cmdList}`
     })
 }
 
