@@ -17,8 +17,10 @@ function generateCode() {
     status.textContent = "≡ Generating Pairing Code..."
     status.style.color = "#ff003c"
     
-    // Generate 6-digit pairing code
-    generatedCode = Math.floor(100000 + Math.random() * 900000).toString()
+    // Generate 8-digit pairing code — FORMAT: XXXX-XXXX (matches WhatsApp!)
+    const part1 = Math.floor(1000 + Math.random() * 9000)
+    const part2 = Math.floor(1000 + Math.random() * 9000)
+    generatedCode = `${part1}-${part2}`
     
     // Display code
     document.getElementById('pairing-code').textContent = generatedCode
