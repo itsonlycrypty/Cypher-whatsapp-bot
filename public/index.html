@@ -1,57 +1,236 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CYPHER v1 — WhatsApp Bot Pairing</title>
-    <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>CYPHER v1 · Pair</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0f;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            color: #fff;
+        }
+        .container {
+            background: #16161f;
+            padding: 30px 25px;
+            border-radius: 28px;
+            max-width: 420px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+            border: 1px solid #2a2a3a;
+            text-align: center;
+        }
+        .logo {
+            font-size: 32px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #a855f7, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+        }
+        .sub {
+            font-size: 13px;
+            color: #8b8ba3;
+            margin-top: 4px;
+            margin-bottom: 25px;
+            letter-spacing: 1px;
+        }
+        .badge {
+            display: inline-block;
+            background: #2a2a3a;
+            padding: 4px 16px;
+            border-radius: 40px;
+            font-size: 11px;
+            color: #c4b5fd;
+            font-weight: 600;
+            margin-bottom: 20px;
+            border: 1px solid #3b3b4f;
+        }
+        label {
+            display: block;
+            text-align: left;
+            font-size: 14px;
+            font-weight: 600;
+            color: #cbd5e1;
+            margin-bottom: 6px;
+        }
+        .input-group {
+            display: flex;
+            align-items: center;
+            background: #0e0e16;
+            border-radius: 16px;
+            border: 1px solid #2a2a3e;
+            padding: 4px;
+            transition: border 0.2s;
+        }
+        .input-group:focus-within {
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+        }
+        .input-group span {
+            padding: 0 12px;
+            color: #8b8ba3;
+            font-weight: 600;
+            font-size: 15px;
+        }
+        input {
+            background: transparent;
+            border: none;
+            padding: 16px 12px;
+            font-size: 16px;
+            color: #fff;
+            width: 100%;
+            outline: none;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+        input::placeholder {
+            color: #4a4a5a;
+            font-weight: 400;
+        }
+        button {
+            width: 100%;
+            margin-top: 20px;
+            padding: 16px;
+            background: linear-gradient(135deg, #8b5cf6, #6366f1);
+            border: none;
+            border-radius: 16px;
+            font-weight: 700;
+            font-size: 17px;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+        button:active {
+            transform: scale(0.97);
+            opacity: 0.8;
+        }
+        button:disabled {
+            opacity: 0.5;
+            transform: scale(1);
+            cursor: not-allowed;
+        }
+        #result {
+            margin-top: 24px;
+            padding: 16px;
+            border-radius: 16px;
+            background: #0e0e16;
+            min-height: 70px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border: 1px dashed #2a2a3e;
+        }
+        .code-display {
+            font-size: 48px;
+            font-weight: 800;
+            letter-spacing: 6px;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-family: 'Courier New', monospace;
+            padding: 8px 0;
+        }
+        .error-text {
+            color: #f87171;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .info-text {
+            color: #8b8ba3;
+            font-size: 14px;
+        }
+        .note {
+            font-size: 12px;
+            color: #6b6b83;
+            margin-top: 16px;
+            line-height: 1.5;
+        }
+        .spinner {
+            width: 28px;
+            height: 28px;
+            border: 3px solid #2a2a3e;
+            border-top: 3px solid #8b5cf6;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <div class="logo">≡ CYPHER v1 ≡</div>
-        <p class="subtitle">WhatsApp Bot — 200+ Commands • Uncensored • Unrestricted</p>
-        
-        <div class="pair-box">
-            <h2>◇ Pair Your Bot</h2>
-            <p>Enter your WhatsApp number below to link CYPHER v1</p>
-            
-            <input type="text" id="phone" placeholder="e.g. 2348123456789" 
-                   oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-            
-            <button onclick="generateCode()">≡ GENERATE PAIRING CODE</button>
-            
-            <div id="code-box" class="code-box">
-                <p>Your Pairing Code:</p>
-                <div id="pairing-code" class="code-display">------</div>
-                <button onclick="copyCode()" class="copy-btn">◇ COPY CODE</button>
-            </div>
-            
-            <div id="instructions" class="instructions">
-                <h3>◇ How to Pair:</h3>
-                <p>1. Open WhatsApp on your phone</p>
-                <p>2. Go to <b>Settings → Linked Devices → Link with Phone Number</b></p>
-                <p>3. Enter your phone number (with country code)</p>
-                <p>4. Input the pairing code shown above</p>
-                <p>5. Done! ≡ Send <b>.menu</b> to start</p>
-            </div>
-            
-            <p id="status" class="status"></p>
+        <div class="logo">CYPHER v1</div>
+        <div class="sub">Uncensored · Unrestricted</div>
+        <div class="badge">🔐 Pair Your Bot</div>
+
+        <label for="phone">WhatsApp Number</label>
+        <div class="input-group">
+            <span>+</span>
+            <input type="tel" id="phone" placeholder="2347016334222" value="2347016334222" />
         </div>
 
-        <div class="features">
-            <div class="feature">◇ 200+ Commands</div>
-            <div class="feature">◇ Fun & Games</div>
-            <div class="feature">◇ Admin Tools</div>
-            <div class="feature">◇ AI Chat</div>
-            <div class="feature">◇ Media Downloader</div>
-            <div class="feature">◇ Fast & Light</div>
-        </div>
+        <button id="pairBtn">🚀 GENERATE PAIRING CODE</button>
 
-        <div class="footer">
-            Created by Crypty • Assisted by Mole<br>
-            <span class="version">CYPHER v1.0.0</span>
+        <div id="result">
+            <span class="info-text">Enter your number and tap generate</span>
         </div>
+        <div class="note">The 8-digit code will appear here. Open WhatsApp → Linked Devices → Link with Phone Number.</div>
     </div>
-    <script src="script.js"></script>
+
+    <script>
+        const btn = document.getElementById('pairBtn');
+        const phoneInput = document.getElementById('phone');
+        const resultDiv = document.getElementById('result');
+
+        btn.addEventListener('click', async () => {
+            // Get raw number (remove spaces, plus sign, etc.)
+            let phone = phoneInput.value.replace(/\D/g, '');
+            if (!phone) {
+                resultDiv.innerHTML = `<span class="error-text">❌ Please enter your number.</span>`;
+                return;
+            }
+
+            // Disable button
+            btn.disabled = true;
+            btn.textContent = '⏳ Generating...';
+            resultDiv.innerHTML = `<div class="spinner"></div>`;
+
+            try {
+                const response = await fetch(`/api/pair?phone=${phone}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    resultDiv.innerHTML = `
+                        <span style="font-size:14px; color:#8b8ba3; margin-bottom:4px;">✅ Your 8-digit code:</span>
+                        <div class="code-display">${data.code}</div>
+                        <span style="font-size:12px; color:#6b6b83; margin-top:4px;">Enter this in WhatsApp to link</span>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<span class="error-text">❌ ${data.error || 'Unknown error'}</span>`;
+                }
+            } catch (err) {
+                resultDiv.innerHTML = `<span class="error-text">❌ Network error. Check your connection and try again.</span>`;
+                console.error(err);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🚀 GENERATE PAIRING CODE';
+            }
+        });
+    </script>
 </body>
-</html>
+    </html>
