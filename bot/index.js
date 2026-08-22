@@ -9,10 +9,23 @@ const PREFIX = "."
 const OWNER_NUMBER = "234XXXXXXXXXX"
 const BOT_NAME = "CYPHER v1"
 const VERSION = "1.0.0"
+const OWNER_NAME = "Crypty"
+const DEVELOPER = "Mole"
+const START_TIME = Date.now()
 
 // ========== LOAD ALL 200+ COMMANDS ==========
 loadCommands()
 console.log(`≡ Loaded ${Object.keys(commands).length} commands`)
+
+// ========== UPTIME CALCULATOR ==========
+function getUptime() {
+    const seconds = Math.floor((Date.now() - START_TIME) / 1000)
+    const d = Math.floor(seconds / 86400)
+    const h = Math.floor((seconds % 86400) / 3600)
+    const m = Math.floor((seconds % 3600) / 60)
+    const s = seconds % 60
+    return `${d}d ${h}h ${m}m ${s}s`
+}
 
 async function startBot(authFolder = 'auth') {
     const { version } = await fetchLatestBaileysVersion()
@@ -32,6 +45,7 @@ async function startBot(authFolder = 'auth') {
         if (connection === 'open') {
             console.log(`≡ ${BOT_NAME} v${VERSION} — ONLINE`)
             console.log(`≡ Prefix: ${PREFIX} | Commands: ${Object.keys(commands).length}`)
+            console.log(`≡ Owner: ${OWNER_NAME} | Assisted by: ${DEVELOPER}`)
         }
         if (connection === 'close') {
             console.log("≡ Notice: Reconnecting...")
@@ -53,7 +67,6 @@ async function startBot(authFolder = 'auth') {
         const isOwner = senderNumber === OWNER_NUMBER
 
         if (!text.startsWith(PREFIX)) {
-            // AI Auto-response for non-command messages
             if (!isGroup && text.length > 2) {
                 await handleAI(sock, msg, text, senderNumber)
             }
@@ -65,17 +78,26 @@ async function startBot(authFolder = 'auth') {
 
         console.log(`≡ [${senderNumber}] .${cmd} ${args.slice(0, 30)}...`)
 
-        // ========== COMMAND EXECUTOR ==========
         try {
             if (commands[cmd]) {
-                await commands[cmd].execute(sock, msg, args, { senderNumber, isOwner, isGroup, BOT_NAME, VERSION })
-            } else if (cmd === "help" || cmd === "menu") {
-                await sendHelp(sock, sender)
-            } else if (cmd === "allcmds") {
+                await commands[cmd].execute(sock, msg, args, { senderNumber, isOwner, isGroup, BOT_NAME, VERSION, OWNER_NAME, DEVELOPER })
+            } 
+            // ========== MAIN MENU COMMAND ==========
+            else if (cmd === "menu" || cmd === "start" || cmd === "help") {
+                await sendFullMenu(sock, sender)
+            } 
+            else if (cmd === "allcmds") {
                 await sendAllCommands(sock, sender)
-            } else {
+            } 
+            else if (cmd === "info" || cmd === "about") {
+                await sendBotInfo(sock, sender)
+            } 
+            else if (cmd === "uptime") {
+                await sock.sendMessage(sender, { text: `≡ Uptime: ${getUptime()}` })
+            } 
+            else {
                 await sock.sendMessage(sender, { 
-                    text: `⟡ Warning: Command ".${cmd}" not found\nType ${PREFIX}help for all commands.` 
+                    text: `⟡ Warning: Command ".${cmd}" not found\nType ${PREFIX}menu for all commands.` 
                 })
             }
         } catch (err) {
@@ -87,29 +109,53 @@ async function startBot(authFolder = 'auth') {
     return sock
 }
 
-// ========== HELP MENU ==========
-async function sendHelp(sock, jid) {
-    const categories = {
-        "⟡ AI": ["ai", "ask", "chat"],
-        "⟡ Fun": ["meme", "joke", "quote", "fact", "riddle", "coinflip", "dice"],
-        "⟡ Tools": ["sticker", "pdf", "qr", "shorten", "weather", "time"],
-        "⟡ Admin": ["kick", "add", "promote", "demote", "mute", "tagall"],
-        "⟡ Download": ["yt", "mp3", "ig", "tiktok", "fb"],
-        "⟡ System": ["ping", "uptime", "info", "alive", "restart"]
-    }
+// ========== FULL MENU WITH IMAGE + INFO ==========
+async function sendFullMenu(sock, jid) {
+    const uptime = getUptime()
+    
+    // Menu Text — With Owner Info
+    let text = `≡ ${BOT_NAME} v${VERSION} — MAIN MENU ≡\n\n`
+    text += `╭───────────────────────\n`
+    text += `◇ 𝗢𝘄𝗻𝗲𝗿: ${OWNER_NAME}\n`
+    text += `◇ 𝗔𝘀𝘀𝗶𝘀𝘁𝗲𝗱 𝗯𝘆: ${DEVELOPER}\n`
+    text += `◇ 𝗩𝗲𝗿𝘀𝗶𝗼𝗻: ${VERSION}\n`
+    text += `◇ 𝗨𝗽𝘁𝗶𝗺𝗲: ${uptime}\n`
+    text += `◇ 𝗖𝗼𝗺𝗺𝗮𝗻𝗱𝘀: ${Object.keys(commands).length}+\n`
+    text += `◇ 𝗣𝗿𝗲𝗳𝗶𝘅: ${PREFIX}\n`
+    text += `╰───────────────────────\n\n`
+    
+    text += `≡ 𝗖𝗔𝗧𝗘𝗚𝗢𝗥𝗜𝗘𝗦:\n\n`
+    text += `◇ ${PREFIX}ai — AI Chat\n`
+    text += `◇ ${PREFIX}fun — Fun & Games\n`
+    text += `◇ ${PREFIX}tools — Utilities\n`
+    text += `◇ ${PREFIX}admin — Group Management\n`
+    text += `◇ ${PREFIX}download — Media Downloaders\n`
+    text += `◇ ${PREFIX}system — System Info\n`
+    text += `◇ ${PREFIX}allcmds — Full Command List\n\n`
+    
+    text += `> ≡ "No filters. No limits. Just pure intelligence." ≡\n`
+    text += `> Created by ${OWNER_NAME} • Assisted by ${DEVELOPER}`
 
-    let text = `≡ ${BOT_NAME} v${VERSION} — COMMANDS ≡\n\n`
-    text += `Total: ${Object.keys(commands).length}+ Commands\nPrefix: ${PREFIX}\n\n`
+    // Send Menu WITH IMAGE — Replace 'image_url' with your official bot image
+    await sock.sendMessage(jid, { 
+        image: { url: "https://i.imgur.com/REPLACE_WITH_YOUR_IMAGE_URL.jpg" },
+        caption: text
+    })
+}
+
+// ========== BOT INFO COMMAND ==========
+async function sendBotInfo(sock, jid) {
+    const uptime = getUptime()
+    const text = `≡ ${BOT_NAME} v${VERSION} — BOT INFO ≡\n\n`
+        + `◇ 𝗢𝘄𝗻𝗲𝗿: ${OWNER_NAME}\n`
+        + `◇ 𝗔𝘀𝘀𝗶𝘀𝘁𝗲𝗱 𝗯𝘆: ${DEVELOPER}\n`
+        + `◇ 𝗩𝗲𝗿𝘀𝗶𝗼𝗻: ${VERSION}\n`
+        + `◇ 𝗨𝗽𝘁𝗶𝗺𝗲: ${uptime}\n`
+        + `◇ 𝗖𝗼𝗺𝗺𝗮𝗻𝗱𝘀: ${Object.keys(commands).length}+\n`
+        + `◇ 𝗦𝘁𝗮𝘁𝘂𝘀: ✅ 𝗢𝗻𝗹𝗶𝗻𝗲\n`
+        + `◇ 𝗣𝗿𝗲𝗳𝗶𝘅: ${PREFIX}\n\n`
+        + `> ≡ "No filters. No limits. Just pure intelligence." ≡`
     
-    for (const [cat, cmds] of Object.entries(categories)) {
-        text += `${cat}\n`
-        cmds.forEach(c => {
-            text += `  ${PREFIX}${c}\n`
-        })
-        text += "\n"
-    }
-    
-    text += `\n> Created by Crypty • Assisted by Mole`
     await sock.sendMessage(jid, { text })
 }
 
@@ -126,4 +172,4 @@ if (require.main === module) {
     startBot()
 }
 
-module.exports = { startBot }
+module.exports = { startBot, getUptime }
