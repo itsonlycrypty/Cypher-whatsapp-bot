@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CYPHER v1 — WhatsApp Bot Pairing</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="logo">≡ CYPHER v1 ≡</div>
+        <p class="subtitle">WhatsApp Bot — 200+ Commands • Uncensored • Unrestricted</p>
+        
+        <div class="pair-box">
+            <h2>⟡ Pair Your Bot</h2>
+            <p>Enter your WhatsApp number below to link CYPHER v1</p>
+            
+            <input type="text" id="phone" placeholder="e.g. 2348123456789" 
+                   oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+            
+            <button onclick="generateQR()">≡ GENERATE QR CODE</button>
+            
+            <div id="qrcode" class="qr-container"></div>
+            <p id="status" class="status"></p>
+        </div>
+
+        <div class="features">
+            <div class="feature">⟡ 200+ Commands</div>
+            <div class="feature">⟡ Fun & Games</div>
+            <div class="feature">⟡ Admin Tools</div>
+            <div class="feature">⟡ AI Chat</div>
+            <div class="feature">⟡ Media Downloader</div>
+            <div class="feature">⟡ Fast & Light</div>
+        </div>
+
+        <div class="footer">
+            Created by Crypty • Assisted by Mole<br>
+            <span class="version">CYPHER v1.0.0</span>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
