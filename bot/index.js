@@ -60,7 +60,7 @@ async function startBot(authFolder = 'auth') {
         syncFullHistory: false
     });
 
-    // ========== PAIRING CODE REQUEST (prints 8‑digit code) ==========
+    // ========== PAIRING CODE REQUEST ==========
     sock.ev.on('connection.update', async (update) => {
         const { connection } = update;
         if (connection === 'open') {
