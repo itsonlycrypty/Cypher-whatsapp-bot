@@ -6,14 +6,14 @@ const path = require('path');
 
 // ========== BOT CONFIG ==========
 const PREFIX = ".";
-const OWNER_NUMBER = "2347016334222";   // <-- CHANGE TO YOUR NUMBER
+const OWNER_NUMBER = "2347016334222";   // <-- YOUR NUMBER
 const BOT_NAME = "CYPHER v1";
 const VERSION = "1.0.0";
 const OWNER_NAME = "Crypty";
 const DEVELOPER = "Mole";
 const START_TIME = Date.now();
 
-// ========== WHITELIST SYSTEM (optional – keeps bot private) ==========
+// ========== WHITELIST SYSTEM (keeps bot private) ==========
 const WHITELIST_FILE = path.join(__dirname, '..', 'auth', 'whitelist.json');
 
 function loadWhitelist() {
@@ -53,26 +53,30 @@ async function startBot(authFolder = 'auth') {
     const { version } = await fetchLatestBaileysVersion();
     const { state, saveCreds } = await useMultiFileAuthState(authFolder);
 
+    // Create socket without QR – we use pairing code
     const sock = makeWASocket({
         version,
         auth: state,
-        printQRInTerminal: true,
+        printQRInTerminal: false,   // we don't want QR
         syncFullHistory: false
     });
 
-    // ========== PAIRING CODE REQUEST ==========
+    // ========== REQUEST PAIRING CODE IMMEDIATELY ==========
+    console.log("≡ Requesting 8‑digit pairing code...");
+    try {
+        const code = await sock.requestPairingCode(OWNER_NUMBER);
+        console.log(`≡ Your 8‑digit pairing code: ${code}`);
+    } catch (e) {
+        console.log("Already paired or error:", e.message);
+    }
+
+    // ========== CONNECTION UPDATE (no pairing code here) ==========
     sock.ev.on('connection.update', async (update) => {
         const { connection } = update;
         if (connection === 'open') {
             console.log(`≡ ${BOT_NAME} v${VERSION} — ONLINE`);
             console.log(`≡ Prefix: ${PREFIX} | Commands: ${Object.keys(commands).length}`);
             console.log(`≡ Owner: ${OWNER_NAME} | Assisted by: ${DEVELOPER}`);
-            try {
-                const code = await sock.requestPairingCode(OWNER_NUMBER);
-                console.log(`≡ Your 8‑digit pairing code: ${code}`);
-            } catch (e) {
-                console.log("Already paired or error:", e.message);
-            }
         }
         if (connection === 'close') {
             console.log("≡ Notice: Reconnecting...");
@@ -93,7 +97,6 @@ async function startBot(authFolder = 'auth') {
         const senderNumber = msg.key.participant?.split('@')[0] || sender.split('@')[0];
         const isOwner = senderNumber === OWNER_NUMBER;
 
-        // Load fresh whitelist
         const whitelist = loadWhitelist();
         const isAuthorized = isOwner || whitelist.includes(senderNumber);
 
