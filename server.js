@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const crypto = require('crypto');
+const fs = require('fs');
 
 // === Fix for Baileys crypto bug ===
 if (typeof globalThis.crypto === 'undefined') {
@@ -21,11 +22,9 @@ const { makeWASocket, Browsers, fetchLatestBaileysVersion } = baileys;
 // === Attempt to get useMemoryAuthState ===
 let useMemoryAuthState;
 try {
-    // Try named import
     if (baileys.useMemoryAuthState) {
         useMemoryAuthState = baileys.useMemoryAuthState;
     } else {
-        // Fallback: manually create a memory store
         useMemoryAuthState = () => {
             const state = { creds: {}, keys: {} };
             return { state, saveCreds: () => {} };
@@ -44,13 +43,29 @@ try {
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Serve static files from "public" – check if folder exists
+// Get absolute path to public folder
 const publicPath = path.join(__dirname, 'public');
+
+// Create public folder if it doesn't exist
+if (!fs.existsSync(publicPath)) {
+    fs.mkdirSync(publicPath, { recursive: true });
+    console.log('Created public folder.');
+}
+
+// Serve static files
 app.use(express.static(publicPath));
 
-// If static fails, serve index.html directly
+// === Fallback route for index.html ===
 app.get('/', (req, res) => {
-    res.sendFile(path.join(publicPath, 'index.html'));
+    const indexPath = path.join(publicPath, 'index.html');
+    if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath);
+    } else {
+        res.send(`
+            <h1>CYPHER v1</h1>
+            <p>Pairing page is loading. If you see this, index.html is missing.</p>
+        `);
+    }
 });
 
 // === PAIRING API ===
@@ -81,10 +96,8 @@ app.get('/api/pair', async (req, res) => {
             browser: Browsers.macOS('Safari'),
         });
 
-        // Wait for socket to initialise
         await new Promise(resolve => setTimeout(resolve, 1500));
 
-        // Request code with timeout
         const code = await Promise.race([
             sock.requestPairingCode(phone),
             new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 10000))
@@ -105,4 +118,5 @@ startBot().catch(err => console.error('Bot error:', err));
 // === Start server ===
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
+    console.log(`Public folder: ${publicPath}`);
 });
