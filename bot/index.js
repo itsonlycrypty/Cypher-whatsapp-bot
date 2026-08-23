@@ -6,14 +6,14 @@ const path = require('path');
 
 // ========== BOT CONFIG ==========
 const PREFIX = ".";
-const OWNER_NUMBER = "2347016334222";   // <-- YOUR NUMBER
+const OWNER_NUMBER = "2347016334222";   // <-- CHANGE TO YOUR NUMBER
 const BOT_NAME = "CYPHER v1";
 const VERSION = "1.0.0";
 const OWNER_NAME = "Crypty";
 const DEVELOPER = "Mole";
 const START_TIME = Date.now();
 
-// ========== WHITELIST SYSTEM (keeps bot private) ==========
+// ========== WHITELIST SYSTEM ==========
 const WHITELIST_FILE = path.join(__dirname, '..', 'auth', 'whitelist.json');
 
 function loadWhitelist() {
@@ -53,22 +53,12 @@ async function startBot(authFolder = 'auth') {
     const { version } = await fetchLatestBaileysVersion();
     const { state, saveCreds } = await useMultiFileAuthState(authFolder);
 
-    // Create socket without QR – we use pairing code
     const sock = makeWASocket({
         version,
         auth: state,
-        printQRInTerminal: false,   // we don't want QR
+        printQRInTerminal: false,   // we use pairing code via website, not QR
         syncFullHistory: false
     });
-
-    // ========== REQUEST PAIRING CODE IMMEDIATELY ==========
-    console.log("≡ Requesting 8‑digit pairing code...");
-    try {
-        const code = await sock.requestPairingCode(OWNER_NUMBER);
-        console.log(`≡ Your 8‑digit pairing code: ${code}`);
-    } catch (e) {
-        console.log("Already paired or error:", e.message);
-    }
 
     // ========== CONNECTION UPDATE (no pairing code here) ==========
     sock.ev.on('connection.update', async (update) => {
