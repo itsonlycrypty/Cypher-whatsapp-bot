@@ -1,6 +1,9 @@
 {
   "name": "cypher-whatsapp-bot",
   "version": "1.0.0",
+  "scripts": {
+    "start": "node server.js"
+  },
   "dependencies": {
     "@whiskeysockets/baileys": "^6.7.0",
     "node-fetch": "^2.6.7",
