@@ -1,2 +1,3 @@
 # Cypher-whatsapp-bot
 Cypher-whatsapp-bot
+Do not pair server down... 
