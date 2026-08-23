@@ -7,27 +7,50 @@ if (typeof globalThis.crypto === 'undefined') {
     globalThis.crypto = crypto;
 }
 
-const { makeWASocket, useMemoryAuthState, Browsers, fetchLatestBaileysVersion } = require('@whiskeysockets/baileys');
+let baileys;
+try {
+    baileys = require('@whiskeysockets/baileys');
+} catch (e) {
+    console.error('Baileys not found:', e.message);
+    process.exit(1);
+}
+
+const { makeWASocket, Browsers, fetchLatestBaileysVersion } = baileys;
+
+// Try to get useMemoryAuthState – if not, use a simple object
+let useMemoryAuthState;
+try {
+    // Attempt to import the named export
+    const module = require('@whiskeysockets/baileys');
+    if (module.useMemoryAuthState) {
+        useMemoryAuthState = module.useMemoryAuthState;
+    } else {
+        // Fallback: define a dummy function that returns an empty state
+        useMemoryAuthState = () => ({ state: { creds: {}, keys: {} } });
+        console.warn('useMemoryAuthState not found, using fallback.');
+    }
+} catch (e) {
+    useMemoryAuthState = () => ({ state: { creds: {}, keys: {} } });
+    console.warn('useMemoryAuthState import failed, using fallback.');
+}
+
 const { startBot } = require('./bot/index');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ========== PAIRING API ==========
 app.get('/api/pair', async (req, res) => {
-    // CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Content-Type', 'application/json');
 
-    // --- Ping request (for server status) ---
+    // Ping
     if (req.query.ping === 'true') {
         return res.status(200).json({ status: 'online' });
     }
 
-    // --- Pairing request ---
     const phone = (req.query.phone || '').replace(/\D/g, '');
     if (!phone || phone.length < 10) {
         return res.status(400).json({ success: false, error: 'Valid phone number required' });
@@ -60,15 +83,14 @@ app.get('/api/pair', async (req, res) => {
     }
 });
 
-// Catch-all route to serve HTML (if static fails)
+// Catch‑all route
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// ========== START MAIN BOT ==========
+// Start bot (main)
 startBot().catch(err => console.error('Bot error:', err));
 
-// ========== START SERVER ==========
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
