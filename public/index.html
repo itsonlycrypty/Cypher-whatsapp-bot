@@ -54,12 +54,16 @@
         }
         .server-card {
             background: #0e0e16;
-            border: 1px solid #2a2a3e;
+            border: 2px solid #2a2a3e;
             border-radius: 16px;
             padding: 14px 8px;
             text-align: center;
             transition: all 0.2s;
-            position: relative;
+            cursor: pointer;
+        }
+        .server-card.selected {
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.3);
         }
         .server-card .name {
             font-weight: 600;
@@ -81,6 +85,9 @@
         }
         .server-card .status.offline {
             color: #f87171;
+        }
+        .server-card .badge {
+            display: none;
         }
         .input-group {
             display: flex;
@@ -171,7 +178,7 @@
             margin: 24px 0 0;
             font-size: 13px;
             color: #8b8ba3;
-            border-top: 1px solid #2a2a3a;
+            border-top: 1px solid #2a2a3e;
             padding-top: 16px;
             line-height: 1.7;
         }
@@ -198,10 +205,6 @@
             font-size: 12px;
             color: #4a4a5a;
         }
-        .footer a {
-            color: #6b6b83;
-            text-decoration: none;
-        }
         @media (max-width: 420px) {
             .container {
                 padding: 20px 16px;
@@ -220,19 +223,19 @@
         <div class="logo">CYPHER v1</div>
         <div class="sub">Pair Your WhatsApp Number</div>
 
-        <!-- Server status cards -->
+        <!-- Server Grid with selection -->
         <div class="server-grid" id="serverGrid">
-            <div class="server-card">
+            <div class="server-card selected" data-server="0">
                 <div class="name">Server 01</div>
                 <div class="region">US West</div>
                 <div class="status offline" id="status0">Offline</div>
             </div>
-            <div class="server-card">
+            <div class="server-card" data-server="1">
                 <div class="name">Server 02</div>
                 <div class="region">EU Frankfurt</div>
                 <div class="status offline" id="status1">Offline</div>
             </div>
-            <div class="server-card">
+            <div class="server-card" data-server="2">
                 <div class="name">Server 03</div>
                 <div class="region">UAE Dubai</div>
                 <div class="status offline" id="status2">Offline</div>
@@ -250,22 +253,35 @@
 
         <!-- Result -->
         <div id="result">
-            <span class="info-text">Enter your number and tap generate</span>
+            <span class="info-text">Select a server and enter your number</span>
         </div>
 
         <!-- Steps -->
         <div class="steps">
             <strong>HOW IT WORKS</strong><br />
-            <strong>1.</strong> Enter your full WhatsApp number (with country code).<br />
-            <strong>2.</strong> Tap the button – we'll request a code from WhatsApp.<br />
-            <strong>3.</strong> Copy the 8‑digit code.<br />
-            <strong>4.</strong> Open WhatsApp → Settings → Linked Devices → Link with Phone Number → paste the code.
+            <strong>1.</strong> Choose a server from the grid (click on it).<br />
+            <strong>2.</strong> Enter your full WhatsApp number (with country code).<br />
+            <strong>3.</strong> Tap the button – we'll request a code from WhatsApp.<br />
+            <strong>4.</strong> Copy the 8‑digit code.<br />
+            <strong>5.</strong> Open WhatsApp → Settings → Linked Devices → Link with Phone Number → paste the code.
         </div>
 
         <div class="footer">© 2026 CYPHER v1 — Built by Crypty &amp; Mole</div>
     </div>
 
     <script>
+        // --- Server selection ---
+        const cards = document.querySelectorAll('.server-card');
+        let selectedServer = 0;
+
+        cards.forEach((card, idx) => {
+            card.addEventListener('click', () => {
+                cards.forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                selectedServer = idx;
+            });
+        });
+
         // --- Ping servers every 5 seconds ---
         const statusElements = [
             document.getElementById('status0'),
@@ -294,11 +310,10 @@
             }
         }
 
-        // Initial ping and interval
         pingServers();
         setInterval(pingServers, 5000);
 
-        // --- Generate code ---
+        // --- Generate code using selected server ---
         const btn = document.getElementById('getCodeBtn');
         const phoneInput = document.getElementById('phone');
         const resultDiv = document.getElementById('result');
@@ -318,7 +333,8 @@
             const timeoutId = setTimeout(() => controller.abort(), 15000);
 
             try {
-                const response = await fetch(`/api/pair?phone=${phone}`, {
+                // Pass server parameter (even though it's the same endpoint)
+                const response = await fetch(`/api/pair?phone=${phone}&server=${selectedServer+1}`, {
                     signal: controller.signal
                 });
                 clearTimeout(timeoutId);
@@ -346,4 +362,4 @@
         });
     </script>
 </body>
-  </html>
+    </html>
