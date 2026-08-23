@@ -3,7 +3,7 @@ const express = require('express');
 const path = require('path');
 const crypto = require('crypto');
 
-// ========== FIX: Ensure global crypto is defined ==========
+// Fix: global crypto for Baileys
 if (typeof globalThis.crypto === 'undefined') {
     globalThis.crypto = crypto;
 }
@@ -14,7 +14,7 @@ const { startBot } = require('./bot/index');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Serve static files from "public"
+// Serve static files (CSS, JS, images) from "public"
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ========== PAIRING API ==========
@@ -56,6 +56,11 @@ app.get('/api/pair', async (req, res) => {
         console.error('Pairing error:', error.message);
         return res.status(500).json({ success: false, error: error.message });
     }
+});
+
+// ========== CATCH‑ALL ROUTE – serve the HTML ==========
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // ========== START MAIN BOT ==========
