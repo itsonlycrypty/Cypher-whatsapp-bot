@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>CYPHER · Pair</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0a0a0f;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+      color: #fff;
+    }
+    .container {
+      background: #16161f;
+      padding: 30px 25px;
+      border-radius: 28px;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+      border: 1px solid #2a2a3a;
+    }
+    .logo {
+      font-size: 28px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #a855f7, #3b82f6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-align: center;
+      letter-spacing: -1px;
+    }
+    .sub { text-align: center; font-size: 13px; color: #8b8ba3; margin-bottom: 20px; }
+    .server-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 20px 0;
+    }
+    .server-card {
+      background: #0e0e16;
+      border: 1px solid #2a2a3e;
+      border-radius: 16px;
+      padding: 14px 8px;
+      text-align: center;
+      transition: all 0.2s;
+      cursor: pointer;
+      position: relative;
+    }
+    .server-card.selected {
+      border-color: #8b5cf6;
+      box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.3);
+    }
+    .server-card.offline {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+    .server-card .name { font-weight: 700; font-size: 13px; color: #e2e8f0; }
+    .server-card .region { font-size: 11px; color: #8b8ba3; margin-top: 2px; }
+    .server-card .latency {
+      font-size: 12px; font-weight: 600; margin-top: 6px; color: #4ade80;
+    }
+    .server-card .latency.high { color: #facc15; }
+    .server-card .latency.offline-text { color: #f87171; }
+    .server-card .badge {
+      position: absolute; top: -6px; right: -6px;
+      font-size: 10px; padding: 2px 8px; border-radius: 30px; font-weight: 700;
+    }
+    .server-card .badge.online { background: #4ade80; color: #000; }
+    .server-card .badge.offline-badge { background: #f87171; color: #fff; }
+    .input-group {
+      display: flex; align-items: center; background: #0e0e16;
+      border-radius: 16px; border: 1px solid #2a2a3e; padding: 4px;
+      margin: 16px 0 12px; transition: border 0.2s;
+    }
+    .input-group:focus-within { border-color: #8b5cf6; }
+    .input-group span { padding: 0 12px; color: #8b8ba3; font-weight: 600; font-size: 15px; }
+    .input-group input {
+      background: transparent; border: none; padding: 14px 12px;
+      font-size: 16px; color: #fff; width: 100%; outline: none;
+      font-weight: 500; letter-spacing: 0.5px;
+    }
+    .input-group input::placeholder { color: #4a4a5a; }
+    .btn {
+      width: 100%; padding: 16px;
+      background: linear-gradient(135deg, #8b5cf6, #6366f1);
+      border: none; border-radius: 16px; font-weight: 700; font-size: 17px;
+      color: #fff; cursor: pointer; transition: all 0.2s;
+      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+      margin-top: 6px;
+    }
+    .btn:active { transform: scale(0.97); opacity: 0.8; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: scale(1); }
+    #result {
+      margin-top: 20px; padding: 16px; border-radius: 16px;
+      background: #0e0e16; min-height: 70px;
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      border: 1px dashed #2a2a3e;
+    }
+    .code-display {
+      font-size: 42px; font-weight: 800; letter-spacing: 6px;
+      background: linear-gradient(135deg, #fbbf24, #f59e0b);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      font-family: 'Courier New', monospace;
+    }
+    .error-text { color: #f87171; font-size: 14px; font-weight: 500; }
+    .info-text { color: #8b8ba3; font-size: 14px; }
+    .steps {
+      margin: 20px 0 0; font-size: 13px; color: #8b8ba3;
+      border-top: 1px solid #2a2a3a; padding-top: 16px; text-align: left;
+    }
+    .steps strong { color: #cbd5e1; }
+    .spinner {
+      width: 28px; height: 28px; border: 3px solid #2a2a3e;
+      border-top: 3px solid #8b5cf6; border-radius: 50%;
+      animation: spin 0.8s linear infinite; margin: 0 auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .footer { margin-top: 16px; text-align: center; font-size: 11px; color: #4a4a5a; }
+    @media (max-width: 420px) { .container { padding: 20px 16px; } }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="logo">CYPHER v1</div>
+  <div class="sub">Uncensored · Unrestricted</div>
+
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+    <span style="font-size:14px; font-weight:600; color:#cbd5e1;">⚡ LIVE STATUS</span>
+    <span style="font-size:12px; color:#8b8ba3;" id="lastUpdated">Updating...</span>
+  </div>
+
+  <div class="server-grid" id="serverGrid">
+    <!-- cards will be inserted by JS -->
+  </div>
+
+  <div class="input-group">
+    <span>+</span>
+    <input type="tel" id="phone" placeholder="2347016334222 (full number)" value="2347016334222" />
+  </div>
+
+  <button class="btn" id="getCodeBtn">🚀 GENERATE PAIRING CODE</button>
+
+  <div id="result"><span class="info-text">Select a server and enter your number</span></div>
+
+  <div class="steps">
+    <strong>HOW IT WORKS</strong><br>
+    <strong>STEP 01</strong> – Choose a server from the grid.<br>
+    <strong>STEP 02</strong> – Enter your full WhatsApp number.<br>
+    <strong>STEP 03</strong> – Hit the button and wait for the 8‑digit code.<br>
+    <strong>STEP 04</strong> – Paste the code in WhatsApp → Linked Devices within 2 min.
+  </div>
+  <div class="footer">© 2026 CYPHER v1 — Built by Crypty &amp; Mole</div>
+</div>
+
+<script>
+  const SERVER_NAMES = ['SERVER 01', 'SERVER 02', 'SERVER 03'];
+  const SERVER_REGIONS = ['US West', 'EU (Frankfurt)', 'UAE (Dubai)'];
+  const ENDPOINT = '/api/pair';
+
+  let selectedServer = 0;
+  let online = [false, false, false];
+  let latencies = [null, null, null];
+
+  const grid = document.getElementById('serverGrid');
+  const phoneInput = document.getElementById('phone');
+  const resultDiv = document.getElementById('result');
+  const getCodeBtn = document.getElementById('getCodeBtn');
+  const lastUpdated = document.getElementById('lastUpdated');
+
+  function renderCards() {
+    grid.innerHTML = '';
+    for (let i = 0; i < 3; i++) {
+      const card = document.createElement('div');
+      const isOnline = online[i];
+      const isSelected = selectedServer === i;
+      card.className = 'server-card' + (isSelected ? ' selected' : '') + (!isOnline ? ' offline' : '');
+      card.dataset.idx = i;
+      let latencyText = isOnline ? (latencies[i] !== null ? latencies[i] + 'ms' : '—') : 'OFFLINE';
+      let latencyClass = isOnline ? (latencies[i] > 500 ? ' high' : '') : ' offline-text';
+      card.innerHTML = `
+        <div class="name">${SERVER_NAMES[i]}</div>
+        <div class="region">${SERVER_REGIONS[i]}</div>
+        <div class="latency${latencyClass}">${latencyText}</div>
+        <div class="badge ${isOnline ? 'online' : 'offline-badge'}">${isOnline ? '✔ Online' : '✖ Offline'}</div>
+      `;
+      card.addEventListener('click', () => { if (online[i]) { selectedServer = i; renderCards(); } });
+      grid.appendChild(card);
+    }
+  }
+
+  async function pingServers() {
+    const results = await Promise.allSettled(
+      [0,1,2].map(async (i) => {
+        const start = performance.now();
+        try {
+          const res = await fetch(`${ENDPOINT}?ping=true&server=${i+1}`, { signal: AbortSignal.timeout(2500) });
+          const data = await res.json();
+          if (data.status === 'online') {
+            return { index: i, online: true, latency: Math.round(performance.now() - start) };
+          } else {
+            return { index: i, online: false, latency: null };
+          }
+        } catch {
+          return { index: i, online: false, latency: null };
+        }
+      })
+    );
+    for (const result of results) {
+      if (result.status === 'fulfilled') {
+        const { index, online: isOnline, latency } = result.value;
+        online[index] = isOnline;
+        latencies[index] = latency;
+      }
+    }
+    const fastestIdx = latencies.reduce((best, curr, idx) => {
+      if (curr !== null && (best === null || curr < best)) return idx;
+      return best;
+    }, null);
+    if (fastestIdx !== null) selectedServer = fastestIdx;
+    renderCards();
+    lastUpdated.textContent = 'Updated ' + new Date().toLocaleTimeString();
+  }
+
+  getCodeBtn.addEventListener('click', async () => {
+    if (!online[selectedServer]) {
+      resultDiv.innerHTML = `<span class="error-text">❌ Selected server is offline. Choose another.</span>`;
+      return;
+    }
+    const phone = phoneInput.value.replace(/\D/g, '');
+    if (!phone || phone.length < 10) {
+      resultDiv.innerHTML = `<span class="error-text">❌ Enter a valid full number (country code + local).</span>`;
+      return;
+    }
+    getCodeBtn.disabled = true;
+    getCodeBtn.textContent = '⏳ Generating...';
+    resultDiv.innerHTML = `<div class="spinner"></div>`;
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+    try {
+      const response = await fetch(`${ENDPOINT}?phone=${phone}&server=${selectedServer+1}`, { signal: controller.signal });
+      clearTimeout(timeoutId);
+      const data = await response.json();
+      if (data.success) {
+        resultDiv.innerHTML = `
+          <span style="font-size:14px; color:#8b8ba3; margin-bottom:4px;">✅ Your 8‑digit code:</span>
+          <div class="code-display">${data.code}</div>
+          <span style="font-size:12px; color:#6b6b83; margin-top:4px;">Enter this in WhatsApp to link</span>
+        `;
+      } else {
+        resultDiv.innerHTML = `<span class="error-text">❌ ${data.error || 'Unknown error'}</span>`;
+      }
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        resultDiv.innerHTML = `<span class="error-text">⏰ Request timed out. Try again.</span>`;
+      } else {
+        resultDiv.innerHTML = `<span class="error-text">❌ ${err.message}</span>`;
+      }
+    } finally {
+      getCodeBtn.disabled = false;
+      getCodeBtn.textContent = '🚀 GENERATE PAIRING CODE';
+    }
+  });
+
+  pingServers();
+  setInterval(pingServers, 10000);
+</script>
+</body>
+</html>
