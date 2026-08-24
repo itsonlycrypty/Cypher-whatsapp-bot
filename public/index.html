@@ -96,16 +96,19 @@
             font-family: 'Courier New', monospace;
         }
         .copy-btn {
-            margin-top: 8px;
-            padding: 6px 18px;
+            margin-top: 10px;
+            padding: 8px 24px;
             background: #2a2a3e;
             border: none;
             border-radius: 30px;
             color: #cbd5e1;
-            font-size: 12px;
+            font-size: 13px;
+            font-weight: 600;
             cursor: pointer;
+            transition: 0.2s;
         }
-        .copy-btn.copied { background: #4ade80; color:#000; }
+        .copy-btn:active { transform: scale(0.95); }
+        .copy-btn.copied { background: #4ade80; color: #000; }
         .error-text { color: #f87171; }
         .info-text { color: #8b8ba3; }
         .spinner {
@@ -174,7 +177,6 @@
         btn.textContent = '⏳ Generating...';
         resultDiv.innerHTML = `<div class="spinner"></div>`;
 
-        // 30-second timeout (Render allows ~30s)
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 30000);
 
@@ -188,7 +190,7 @@
                     <span style="color:#8b8ba3;">✔ Your 8‑digit code:</span>
                     <div class="code-display" id="pairCode">${data.code}</div>
                     <button class="copy-btn" id="copyBtn">📋 Copy Code</button>
-                    <span style="font-size:12px; color:#6b6b83; margin-top:6px;">Enter in WhatsApp → Linked Devices</span>
+                    <span style="font-size:12px; color:#6b6b83; margin-top:4px;">Enter in WhatsApp → Linked Devices</span>
                 `;
                 document.getElementById('copyBtn').addEventListener('click', () => {
                     const code = document.getElementById('pairCode').textContent;
@@ -225,4 +227,4 @@
     });
 </script>
 </body>
-    </html>
+</html>
