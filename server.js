@@ -22,15 +22,19 @@ app.get('/api/pair', async (req, res) => {
 
     if (req.query.ping === 'true') return res.json({ status: 'online' });
 
-    const phone = (req.query.phone || '').replace(/\D/g, '');
+    let phone = (req.query.phone || '').replace(/\D/g, '');
+    // Remove leading zero if present (e.g., 070... -> 70...)
+    if (phone.startsWith('0')) phone = phone.substring(1);
+
     if (!phone || phone.length < 10) {
-        return res.status(400).json({ success: false, error: 'Valid phone number required' });
+        return res.status(400).json({ success: false, error: 'Valid phone number required (no leading zero)' });
     }
 
     const tempDir = path.join(os.tmpdir(), `pair-${Date.now()}`);
     fs.mkdirSync(tempDir, { recursive: true });
 
     try {
+        console.log(`Pairing request for ${phone}`);
         const { state, saveCreds } = await useMultiFileAuthState(tempDir);
         const { version } = await fetchLatestBaileysVersion();
 
@@ -42,10 +46,12 @@ app.get('/api/pair', async (req, res) => {
             browser: Browsers.macOS('Safari'),
         });
 
-        // === Wait for connection.open (20s timeout) ===
+        // Wait for connection.open (15s timeout)
+        console.log('Waiting for connection.open...');
         await new Promise((resolve, reject) => {
-            const timer = setTimeout(() => reject(new Error('Connection timeout')), 20000);
+            const timer = setTimeout(() => reject(new Error('Connection timeout')), 15000);
             sock.ev.on('connection.update', (u) => {
+                console.log('Connection update:', u.connection);
                 if (u.connection === 'open') {
                     clearTimeout(timer);
                     resolve();
@@ -57,12 +63,13 @@ app.get('/api/pair', async (req, res) => {
             });
         });
 
-        // === Now request the pairing code (5s timeout) ===
+        console.log('Connection open, requesting code...');
         const code = await Promise.race([
             sock.requestPairingCode(phone),
             new Promise((_, reject) => setTimeout(() => reject(new Error('Code request timeout')), 5000))
         ]);
 
+        console.log('Code generated:', code);
         sock.end();
         fs.rmSync(tempDir, { recursive: true, force: true });
 
