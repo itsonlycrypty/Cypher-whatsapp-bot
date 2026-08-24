@@ -27,7 +27,6 @@ app.get('/api/pair', async (req, res) => {
         return res.status(400).json({ success: false, error: 'Valid phone number required' });
     }
 
-    // Create a temporary folder for this session
     const tempDir = path.join(os.tmpdir(), `pair-${Date.now()}`);
     fs.mkdirSync(tempDir, { recursive: true });
 
@@ -43,20 +42,14 @@ app.get('/api/pair', async (req, res) => {
             browser: Browsers.macOS('Safari'),
         });
 
-        // Wait for connection.open (up to 20 seconds)
-        await new Promise((resolve, reject) => {
-            const timer = setTimeout(() => reject(new Error('Connection timeout')), 20000);
-            sock.ev.on('connection.update', (u) => {
-                if (u.connection === 'open') { clearTimeout(timer); resolve(); }
-                if (u.connection === 'close') { clearTimeout(timer); reject(new Error('Connection closed')); }
-            });
-        });
+        // Request the code immediately – no wait for connection.open
+        // This is faster and works within Render's timeout.
+        const code = await Promise.race([
+            sock.requestPairingCode(phone),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out')), 25000))
+        ]);
 
-        // Now request the pairing code
-        const code = await sock.requestPairingCode(phone);
         sock.end();
-
-        // Clean up temp folder
         fs.rmSync(tempDir, { recursive: true, force: true });
 
         return res.json({ success: true, code });
