@@ -2,10 +2,11 @@ const express = require('express');
 const path = require('path');
 const crypto = require('crypto');
 const fs = require('fs');
+const os = require('os');
 
 if (typeof globalThis.crypto === 'undefined') globalThis.crypto = crypto;
 
-const { makeWASocket, useMemoryAuthState, Browsers, fetchLatestBaileysVersion } = require('@whiskeysockets/baileys');
+const { makeWASocket, useMultiFileAuthState, Browsers, fetchLatestBaileysVersion } = require('@whiskeysockets/baileys');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -26,9 +27,13 @@ app.get('/api/pair', async (req, res) => {
         return res.status(400).json({ success: false, error: 'Valid phone number required' });
     }
 
+    // Create a temporary folder for this session
+    const tempDir = path.join(os.tmpdir(), `pair-${Date.now()}`);
+    fs.mkdirSync(tempDir, { recursive: true });
+
     try {
+        const { state, saveCreds } = await useMultiFileAuthState(tempDir);
         const { version } = await fetchLatestBaileysVersion();
-        const { state } = useMemoryAuthState();
 
         const sock = makeWASocket({
             version,
@@ -38,19 +43,26 @@ app.get('/api/pair', async (req, res) => {
             browser: Browsers.macOS('Safari'),
         });
 
-        // Give socket a moment to initialise
-        await new Promise(r => setTimeout(r, 500));
+        // Wait for connection.open (up to 20 seconds)
+        await new Promise((resolve, reject) => {
+            const timer = setTimeout(() => reject(new Error('Connection timeout')), 20000);
+            sock.ev.on('connection.update', (u) => {
+                if (u.connection === 'open') { clearTimeout(timer); resolve(); }
+                if (u.connection === 'close') { clearTimeout(timer); reject(new Error('Connection closed')); }
+            });
+        });
 
-        // Request code directly – no connection.open wait (faster)
-        const code = await Promise.race([
-            sock.requestPairingCode(phone),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out')), 20000))
-        ]);
-
+        // Now request the pairing code
+        const code = await sock.requestPairingCode(phone);
         sock.end();
+
+        // Clean up temp folder
+        fs.rmSync(tempDir, { recursive: true, force: true });
+
         return res.json({ success: true, code });
     } catch (error) {
         console.error('Pairing error:', error.message);
+        try { fs.rmSync(tempDir, { recursive: true, force: true }); } catch (e) {}
         return res.status(500).json({ success: false, error: error.message });
     }
 });
