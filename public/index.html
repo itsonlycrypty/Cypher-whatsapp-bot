@@ -5,7 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>CYPHER · Pair</title>
     <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: #0f0f1a;
@@ -23,7 +27,7 @@
             border-radius: 28px;
             padding: 30px 24px;
             border: 1px solid #2a2a3e;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
         }
         .logo {
             font-size: 28px;
@@ -51,7 +55,9 @@
             padding: 4px;
             margin: 12px 0;
         }
-        .input-group:focus-within { border-color: #8b5cf6; }
+        .input-group:focus-within {
+            border-color: #8b5cf6;
+        }
         .input-group select {
             background: transparent;
             border: none;
@@ -67,7 +73,10 @@
             background-position: right 12px center;
             padding-right: 34px;
         }
-        .input-group select option { background: #1a1a2e; color: #fff; }
+        .input-group select option {
+            background: #1a1a2e;
+            color: #fff;
+        }
         .input-group input {
             background: transparent;
             border: none;
@@ -77,7 +86,9 @@
             font-size: 16px;
             outline: none;
         }
-        .input-group input::placeholder { color: #4a4a5a; }
+        .input-group input::placeholder {
+            color: #4a4a5a;
+        }
         .btn {
             width: 100%;
             padding: 16px;
@@ -89,8 +100,17 @@
             color: #fff;
             cursor: pointer;
             margin-top: 8px;
+            transition: 0.2s;
         }
-        .btn:disabled { opacity:0.5; cursor:not-allowed; }
+        .btn:active {
+            transform: scale(0.97);
+            opacity: 0.85;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
         #result {
             margin-top: 20px;
             padding: 16px;
@@ -125,10 +145,19 @@
             cursor: pointer;
             transition: 0.2s;
         }
-        .copy-btn:active { transform: scale(0.95); }
-        .copy-btn.copied { background: #4ade80; color: #000; }
-        .error-text { color: #f87171; }
-        .info-text { color: #8b8ba3; }
+        .copy-btn:active {
+            transform: scale(0.95);
+        }
+        .copy-btn.copied {
+            background: #4ade80;
+            color: #000;
+        }
+        .error-text {
+            color: #f87171;
+        }
+        .info-text {
+            color: #8b8ba3;
+        }
         .spinner {
             width: 28px;
             height: 28px;
@@ -138,7 +167,11 @@
             animation: spin 0.8s linear infinite;
             margin: 0 auto;
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
         .steps {
             margin-top: 24px;
             font-size: 13px;
@@ -147,131 +180,157 @@
             padding-top: 16px;
             line-height: 1.7;
         }
+        .steps strong {
+            color: #cbd5e1;
+        }
         .footer {
             margin-top: 16px;
             text-align: center;
             font-size: 11px;
             color: #4a4a5a;
         }
+        @media (max-width: 420px) {
+            .container {
+                padding: 20px 16px;
+            }
+            .input-group select {
+                width: 90px;
+                font-size: 14px;
+            }
+        }
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="logo">CYPHER v1</div>
-    <div class="sub">Pair Your WhatsApp Number</div>
+    <div class="container">
+        <div class="logo">CYPHER v1</div>
+        <div class="sub">Pair Your WhatsApp Number</div>
 
-    <div class="input-group">
-        <select id="countryCode">
-            <option value="234">🇳🇬 Nigeria (+234)</option>
-            <option value="1">🇺🇸 USA (+1)</option>
-            <option value="44">🇬🇧 UK (+44)</option>
-            <option value="91">🇮🇳 India (+91)</option>
-            <option value="61">🇦🇺 Australia (+61)</option>
-            <option value="55">🇧🇷 Brazil (+55)</option>
-            <option value="81">🇯🇵 Japan (+81)</option>
-            <option value="86">🇨🇳 China (+86)</option>
-            <option value="49">🇩🇪 Germany (+49)</option>
-            <option value="33">🇫🇷 France (+33)</option>
-            <option value="39">🇮🇹 Italy (+39)</option>
-            <option value="7">🇷🇺 Russia (+7)</option>
-            <option value="82">🇰🇷 South Korea (+82)</option>
-            <option value="52">🇲🇽 Mexico (+52)</option>
-            <option value="31">🇳🇱 Netherlands (+31)</option>
-            <option value="46">🇸🇪 Sweden (+46)</option>
-            <option value="41">🇨🇭 Switzerland (+41)</option>
-            <option value="34">🇪🇸 Spain (+34)</option>
-            <option value="27">🇿🇦 South Africa (+27)</option>
-            <option value="971">🇦🇪 UAE (+971)</option>
-            <option value="966">🇸🇦 Saudi Arabia (+966)</option>
-        </select>
-        <input type="tel" id="phoneInput" placeholder="7016334222" />
+        <div class="input-group">
+            <select id="countryCode">
+                <option value="234">🇳🇬 Nigeria (+234)</option>
+                <option value="1">🇺🇸 USA (+1)</option>
+                <option value="44">🇬🇧 UK (+44)</option>
+                <option value="91">🇮🇳 India (+91)</option>
+                <option value="61">🇦🇺 Australia (+61)</option>
+                <option value="55">🇧🇷 Brazil (+55)</option>
+                <option value="81">🇯🇵 Japan (+81)</option>
+                <option value="86">🇨🇳 China (+86)</option>
+                <option value="49">🇩🇪 Germany (+49)</option>
+                <option value="33">🇫🇷 France (+33)</option>
+                <option value="39">🇮🇹 Italy (+39)</option>
+                <option value="7">🇷🇺 Russia (+7)</option>
+                <option value="82">🇰🇷 South Korea (+82)</option>
+                <option value="52">🇲🇽 Mexico (+52)</option>
+                <option value="31">🇳🇱 Netherlands (+31)</option>
+                <option value="46">🇸🇪 Sweden (+46)</option>
+                <option value="41">🇨🇭 Switzerland (+41)</option>
+                <option value="34">🇪🇸 Spain (+34)</option>
+                <option value="27">🇿🇦 South Africa (+27)</option>
+                <option value="971">🇦🇪 UAE (+971)</option>
+                <option value="966">🇸🇦 Saudi Arabia (+966)</option>
+            </select>
+            <input type="tel" id="phoneInput" placeholder="7016334222" oninput="this.value = this.value.replace(/^0+/, '')" />
+        </div>
+
+        <button class="btn" id="getCodeBtn">🔐 GENERATE PAIRING CODE</button>
+
+        <div id="result">
+            <span class="info-text">Select country, enter number, then tap generate</span>
+        </div>
+
+        <div class="steps">
+            <strong>◈ HOW IT WORKS</strong><br />
+            <strong>❶</strong> Select your country – the code auto‑fills.<br />
+            <strong>❷</strong> Enter your local number (without country code).<br />
+            <strong>❸</strong> Tap the button – we'll request a code from WhatsApp.<br />
+            <strong>❹</strong> Copy the 8‑digit code.<br />
+            <strong>❺</strong> Open WhatsApp → Settings → Linked Devices → Link with Phone Number → paste the code.
+        </div>
+
+        <div class="footer">© 2026 CYPHER v1 — Built by Crypty &amp; Mole</div>
     </div>
 
-    <button class="btn" id="getCodeBtn">🔐 GENERATE PAIRING CODE</button>
+    <script>
+        const btn = document.getElementById('getCodeBtn');
+        const countrySelect = document.getElementById('countryCode');
+        const phoneInput = document.getElementById('phoneInput');
+        const resultDiv = document.getElementById('result');
 
-    <div id="result"><span class="info-text">Select country, enter number, then tap generate</span></div>
+        // Auto‑focus on the phone input
+        phoneInput.focus();
 
-    <div class="steps">
-        <strong>◈ HOW IT WORKS</strong><br />
-        <strong>❶</strong> Select your country – the code auto‑fills.<br />
-        <strong>❷</strong> Enter your local number (without country code).<br />
-        <strong>❸</strong> Tap the button – we'll request a code from WhatsApp.<br />
-        <strong>❹</strong> Copy the 8‑digit code.<br />
-        <strong>❺</strong> Open WhatsApp → Settings → Linked Devices → Link with Phone Number → paste the code.
-    </div>
-    <div class="footer">© 2026 CYPHER v1 — Built by Crypty &amp; Mole</div>
-</div>
+        btn.addEventListener('click', async () => {
+            const countryCode = countrySelect.value;
+            let localNumber = phoneInput.value.replace(/\D/g, '');
+            // Remove any leading zero (e.g., 070... -> 70...)
+            if (localNumber.startsWith('0')) localNumber = localNumber.substring(1);
 
-<script>
-    const btn = document.getElementById('getCodeBtn');
-    const countrySelect = document.getElementById('countryCode');
-    const phoneInput = document.getElementById('phoneInput');
-    const resultDiv = document.getElementById('result');
+            if (!localNumber || localNumber.length < 6) {
+                resultDiv.innerHTML = `<span class="error-text">✖ Please enter a valid local number (no leading zero).</span>`;
+                return;
+            }
 
-    // Optional: auto-focus on input
-    phoneInput.focus();
+            const fullNumber = countryCode + localNumber;
 
-    btn.addEventListener('click', async () => {
-        const countryCode = countrySelect.value;
-        const localNumber = phoneInput.value.replace(/\D/g, '');
-        if (!localNumber || localNumber.length < 6) {
-            resultDiv.innerHTML = `<span class="error-text">✖ Please enter a valid local number.</span>`;
-            return;
-        }
-        const fullNumber = countryCode + localNumber;
+            btn.disabled = true;
+            btn.textContent = '⏳ Generating...';
+            resultDiv.innerHTML = `<div class="spinner"></div>`;
 
-        btn.disabled = true;
-        btn.textContent = '⏳ Generating...';
-        resultDiv.innerHTML = `<div class="spinner"></div>`;
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30000);
 
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000);
+            try {
+                const res = await fetch(`/api/pair?phone=${fullNumber}`, { signal: controller.signal });
+                clearTimeout(timeoutId);
+                const data = await res.json();
 
-        try {
-            const res = await fetch(`/api/pair?phone=${fullNumber}`, { signal: controller.signal });
-            clearTimeout(timeoutId);
-            const data = await res.json();
-
-            if (data.success) {
-                resultDiv.innerHTML = `
-                    <span style="color:#8b8ba3;">✔ Your 8‑digit code:</span>
-                    <div class="code-display" id="pairCode">${data.code}</div>
-                    <button class="copy-btn" id="copyBtn">📋 Copy Code</button>
-                    <span style="font-size:12px; color:#6b6b83; margin-top:4px;">Enter in WhatsApp → Linked Devices</span>
-                `;
-                document.getElementById('copyBtn').addEventListener('click', () => {
-                    const code = document.getElementById('pairCode').textContent;
-                    navigator.clipboard.writeText(code).then(() => {
-                        const btn = document.getElementById('copyBtn');
-                        btn.textContent = '✔ Copied!';
-                        btn.classList.add('copied');
-                        setTimeout(() => { btn.textContent = '📋 Copy Code'; btn.classList.remove('copied'); }, 2000);
-                    }).catch(() => {
-                        const range = document.createRange();
-                        range.selectNode(document.getElementById('pairCode'));
-                        window.getSelection().removeAllRanges();
-                        window.getSelection().addRange(range);
-                        document.execCommand('copy');
-                        const btn = document.getElementById('copyBtn');
-                        btn.textContent = '✔ Copied!';
-                        btn.classList.add('copied');
-                        setTimeout(() => { btn.textContent = '📋 Copy Code'; btn.classList.remove('copied'); }, 2000);
+                if (data.success) {
+                    resultDiv.innerHTML = `
+                        <span style="color:#8b8ba3;">✔ Your 8‑digit code:</span>
+                        <div class="code-display" id="pairCode">${data.code}</div>
+                        <button class="copy-btn" id="copyBtn">📋 Copy Code</button>
+                        <span style="font-size:12px; color:#6b6b83; margin-top:4px;">Enter in WhatsApp → Linked Devices</span>
+                    `;
+                    document.getElementById('copyBtn').addEventListener('click', () => {
+                        const code = document.getElementById('pairCode').textContent;
+                        navigator.clipboard.writeText(code).then(() => {
+                            const btnCopy = document.getElementById('copyBtn');
+                            btnCopy.textContent = '✔ Copied!';
+                            btnCopy.classList.add('copied');
+                            setTimeout(() => {
+                                btnCopy.textContent = '📋 Copy Code';
+                                btnCopy.classList.remove('copied');
+                            }, 2000);
+                        }).catch(() => {
+                            // Fallback for mobile browsers
+                            const range = document.createRange();
+                            range.selectNode(document.getElementById('pairCode'));
+                            window.getSelection().removeAllRanges();
+                            window.getSelection().addRange(range);
+                            document.execCommand('copy');
+                            const btnCopy = document.getElementById('copyBtn');
+                            btnCopy.textContent = '✔ Copied!';
+                            btnCopy.classList.add('copied');
+                            setTimeout(() => {
+                                btnCopy.textContent = '📋 Copy Code';
+                                btnCopy.classList.remove('copied');
+                            }, 2000);
+                        });
                     });
-                });
-            } else {
-                resultDiv.innerHTML = `<span class="error-text">✖ ${data.error || 'Unknown error'}</span>`;
+                } else {
+                    resultDiv.innerHTML = `<span class="error-text">✖ ${data.error || 'Unknown error'}</span>`;
+                }
+            } catch (err) {
+                if (err.name === 'AbortError') {
+                    resultDiv.innerHTML = `<span class="error-text">⏰ Request timed out. Try again.</span>`;
+                } else {
+                    resultDiv.innerHTML = `<span class="error-text">✖ ${err.message}</span>`;
+                }
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🔐 GENERATE PAIRING CODE';
             }
-        } catch (err) {
-            if (err.name === 'AbortError') {
-                resultDiv.innerHTML = `<span class="error-text">⏰ Request timed out. Try again.</span>`;
-            } else {
-                resultDiv.innerHTML = `<span class="error-text">✖ ${err.message}</span>`;
-            }
-        } finally {
-            btn.disabled = false;
-            btn.textContent = '🔐 GENERATE PAIRING CODE';
-        }
-    });
-</script>
+        });
+    </script>
 </body>
     </html>
