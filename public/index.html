@@ -2,72 +2,230 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>CYPHER · Pair</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #0a0a0f; color: #fff; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
-        .container { background: #1a1a2e; padding: 30px; border-radius: 20px; max-width: 400px; width: 100%; text-align: center; }
-        .logo { font-size: 28px; font-weight: bold; background: linear-gradient(135deg, #a855f7, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .input-group { display: flex; background: #0e0e16; border-radius: 12px; padding: 4px; margin: 20px 0; border: 1px solid #2a2a3e; }
-        .input-group span { padding: 0 12px; color: #8b8ba3; }
-        .input-group input { background: transparent; border: none; padding: 14px; width: 100%; color: #fff; font-size: 16px; outline: none; }
-        .btn { width: 100%; padding: 16px; background: linear-gradient(135deg, #8b5cf6, #6366f1); border: none; border-radius: 12px; color: #fff; font-weight: bold; font-size: 17px; cursor: pointer; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f0f1a;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 30px 20px;
+            color: #e0e0e0;
+        }
+        .container {
+            max-width: 480px;
+            width: 100%;
+            background: #1a1a2e;
+            border-radius: 32px;
+            padding: 30px 24px 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+            border: 1px solid #2a2a3e;
+        }
+        .logo {
+            font-size: 32px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #a855f7, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+        }
+        .sub {
+            text-align: center;
+            font-size: 14px;
+            color: #8b8ba3;
+            margin-bottom: 28px;
+            border-bottom: 1px solid #2a2a3e;
+            padding-bottom: 16px;
+        }
+        .input-group {
+            display: flex;
+            align-items: center;
+            background: #0e0e16;
+            border-radius: 16px;
+            border: 1px solid #2a2a3e;
+            padding: 4px;
+            margin: 16px 0 12px;
+        }
+        .input-group:focus-within {
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 3px rgba(139,92,246,0.15);
+        }
+        .input-group span { padding: 0 12px; color: #8b8ba3; font-weight: 600; }
+        .input-group input {
+            background: transparent;
+            border: none;
+            padding: 14px 12px;
+            font-size: 16px;
+            color: #fff;
+            width: 100%;
+            outline: none;
+        }
+        .btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #8b5cf6, #6366f1);
+            border: none;
+            border-radius: 16px;
+            font-weight: 700;
+            font-size: 17px;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(99,102,241,0.3);
+        }
+        .btn:active { transform: scale(0.97); opacity: 0.85; }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        #result { margin-top: 20px; padding: 16px; background: #0e0e16; border-radius: 12px; min-height: 60px; border: 1px dashed #2a2a3e; }
-        .code { font-size: 36px; font-weight: bold; color: #fbbf24; letter-spacing: 4px; }
-        .error { color: #f87171; }
-        .info { color: #8b8ba3; }
-        .spinner { border: 3px solid #2a2a3e; border-top: 3px solid #8b5cf6; border-radius: 50%; width: 28px; height: 28px; animation: spin 0.8s linear infinite; margin: 0 auto; }
+        #result {
+            margin-top: 20px;
+            padding: 16px;
+            border-radius: 16px;
+            background: #0e0e16;
+            min-height: 70px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border: 1px dashed #2a2a3e;
+            text-align: center;
+            position: relative;
+        }
+        .code-display {
+            font-size: 42px;
+            font-weight: 800;
+            letter-spacing: 6px;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-family: 'Courier New', monospace;
+        }
+        .copy-btn {
+            margin-top: 8px;
+            padding: 6px 18px;
+            background: #2a2a3e;
+            border: none;
+            border-radius: 30px;
+            color: #cbd5e1;
+            font-size: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .copy-btn:active { background: #3a3a4e; }
+        .copy-btn.copied { background: #4ade80; color: #000; }
+        .error-text { color: #f87171; font-size: 14px; }
+        .info-text { color: #8b8ba3; font-size: 14px; }
+        .steps {
+            margin: 24px 0 0;
+            font-size: 13px;
+            color: #8b8ba3;
+            border-top: 1px solid #2a2a3e;
+            padding-top: 16px;
+            line-height: 1.7;
+        }
+        .steps strong { color: #cbd5e1; }
+        .spinner {
+            width: 28px;
+            height: 28px;
+            border: 3px solid #2a2a3e;
+            border-top: 3px solid #8b5cf6;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto;
+        }
         @keyframes spin { to { transform: rotate(360deg); } }
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #4a4a5a;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="logo">CYPHER v1</div>
-        <p style="color: #8b8ba3; margin-bottom: 20px;">Pair Your WhatsApp Number</p>
-        <div class="input-group">
-            <span>+</span>
-            <input type="tel" id="phone" placeholder="2347016334222" />
-        </div>
-        <button class="btn" id="getCodeBtn">🔐 GENERATE PAIRING CODE</button>
-        <div id="result"><span class="info">Enter your number and tap generate</span></div>
+<div class="container">
+    <div class="logo">CYPHER v1</div>
+    <div class="sub">Pair Your WhatsApp Number</div>
+
+    <div class="input-group">
+        <span>+</span>
+        <input type="tel" id="phone" placeholder="2347016334222" />
     </div>
-    <script>
-        const btn = document.getElementById('getCodeBtn');
-        const phoneInput = document.getElementById('phone');
-        const resultDiv = document.getElementById('result');
 
-        btn.addEventListener('click', async () => {
-            const phone = phoneInput.value.replace(/\D/g, '');
-            if (!phone || phone.length < 10) {
-                resultDiv.innerHTML = `<span class="error">❌ Please enter a valid full number.</span>`;
-                return;
+    <button class="btn" id="getCodeBtn">🔐 GENERATE PAIRING CODE</button>
+
+    <div id="result"><span class="info-text">Enter your number and tap generate</span></div>
+
+    <div class="steps">
+        <strong>◈ HOW IT WORKS</strong><br />
+        <strong>❶</strong> Enter your full WhatsApp number (with country code).<br />
+        <strong>❷</strong> Tap the button – we'll request a code from WhatsApp.<br />
+        <strong>❸</strong> Copy the 8‑digit code.<br />
+        <strong>❹</strong> Open WhatsApp → Settings → Linked Devices → Link with Phone Number → paste the code.
+    </div>
+    <div class="footer">© 2026 CYPHER v1 — Built by Crypty &amp; Mole</div>
+</div>
+
+<script>
+    const btn = document.getElementById('getCodeBtn');
+    const phoneInput = document.getElementById('phone');
+    const resultDiv = document.getElementById('result');
+
+    btn.addEventListener('click', async () => {
+        const phone = phoneInput.value.replace(/\D/g, '');
+        if (!phone || phone.length < 10) {
+            resultDiv.innerHTML = `<span class="error-text">✖ Please enter a valid full number.</span>`;
+            return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = '⏳ Generating...';
+        resultDiv.innerHTML = `<div class="spinner"></div>`;
+
+        try {
+            const res = await fetch(`/api/pair?phone=${phone}`);
+            const data = await res.json();
+
+            if (data.success) {
+                resultDiv.innerHTML = `
+                    <span style="color:#8b8ba3;">✔ Your 8‑digit code:</span>
+                    <div class="code-display" id="pairCode">${data.code}</div>
+                    <button class="copy-btn" id="copyBtn">📋 Copy Code</button>
+                    <span style="font-size:12px; color:#6b6b83; margin-top:6px;">Enter in WhatsApp → Linked Devices</span>
+                `;
+                // Copy functionality
+                document.getElementById('copyBtn').addEventListener('click', () => {
+                    const code = document.getElementById('pairCode').textContent;
+                    navigator.clipboard.writeText(code).then(() => {
+                        const btn = document.getElementById('copyBtn');
+                        btn.textContent = '✔ Copied!';
+                        btn.classList.add('copied');
+                        setTimeout(() => { btn.textContent = '📋 Copy Code'; btn.classList.remove('copied'); }, 2000);
+                    }).catch(() => {
+                        // Fallback: select and copy
+                        const range = document.createRange();
+                        range.selectNode(document.getElementById('pairCode'));
+                        window.getSelection().removeAllRanges();
+                        window.getSelection().addRange(range);
+                        document.execCommand('copy');
+                        const btn = document.getElementById('copyBtn');
+                        btn.textContent = '✔ Copied!';
+                        btn.classList.add('copied');
+                        setTimeout(() => { btn.textContent = '📋 Copy Code'; btn.classList.remove('copied'); }, 2000);
+                    });
+                });
+            } else {
+                resultDiv.innerHTML = `<span class="error-text">✖ ${data.error || 'Unknown error'}</span>`;
             }
-
-            btn.disabled = true;
-            btn.textContent = '⏳ Generating...';
-            resultDiv.innerHTML = `<div class="spinner"></div>`;
-
-            try {
-                const res = await fetch(`/api/pair?phone=${phone}`);
-                const data = await res.json();
-
-                if (data.success) {
-                    resultDiv.innerHTML = `
-                        <span style="color: #8b8ba3;">✅ Your 8‑digit code:</span>
-                        <div class="code">${data.code}</div>
-                        <span style="font-size:12px; color:#6b6b83;">Enter in WhatsApp → Linked Devices</span>
-                    `;
-                } else {
-                    resultDiv.innerHTML = `<span class="error">❌ ${data.error || 'Unknown error'}</span>`;
-                }
-            } catch (err) {
-                resultDiv.innerHTML = `<span class="error">❌ ${err.message}</span>`;
-            } finally {
-                btn.disabled = false;
-                btn.textContent = '🔐 GENERATE PAIRING CODE';
-            }
-        });
-    </script>
+        } catch (err) {
+            resultDiv.innerHTML = `<span class="error-text">✖ ${err.message}</span>`;
+        } finally {
+            btn.disabled = false;
+            btn.textContent = '🔐 GENERATE PAIRING CODE';
+        }
+    });
+</script>
 </body>
 </html>
