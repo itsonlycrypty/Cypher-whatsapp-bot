@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>CYPHER · Pair</title>
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
@@ -12,8 +12,8 @@
             min-height: 100vh;
             display: flex;
             justify-content: center;
-            align-items: center;
-            padding: 20px;
+            align-items: flex-start;
+            padding: 30px 20px;
             color: #e0e0e0;
         }
         .container {
@@ -174,8 +174,13 @@
         btn.textContent = '⏳ Generating...';
         resultDiv.innerHTML = `<div class="spinner"></div>`;
 
+        // 30-second timeout (Render allows ~30s)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000);
+
         try {
-            const res = await fetch(`/api/pair?phone=${phone}`);
+            const res = await fetch(`/api/pair?phone=${phone}`, { signal: controller.signal });
+            clearTimeout(timeoutId);
             const data = await res.json();
 
             if (data.success) {
@@ -193,7 +198,6 @@
                         btn.classList.add('copied');
                         setTimeout(() => { btn.textContent = '📋 Copy Code'; btn.classList.remove('copied'); }, 2000);
                     }).catch(() => {
-                        // fallback
                         const range = document.createRange();
                         range.selectNode(document.getElementById('pairCode'));
                         window.getSelection().removeAllRanges();
@@ -209,7 +213,11 @@
                 resultDiv.innerHTML = `<span class="error-text">✖ ${data.error || 'Unknown error'}</span>`;
             }
         } catch (err) {
-            resultDiv.innerHTML = `<span class="error-text">✖ ${err.message}</span>`;
+            if (err.name === 'AbortError') {
+                resultDiv.innerHTML = `<span class="error-text">⏰ Request timed out. Try again.</span>`;
+            } else {
+                resultDiv.innerHTML = `<span class="error-text">✖ ${err.message}</span>`;
+            }
         } finally {
             btn.disabled = false;
             btn.textContent = '🔐 GENERATE PAIRING CODE';
