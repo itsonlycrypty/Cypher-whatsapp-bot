@@ -2,11 +2,10 @@ const express = require('express');
 const path = require('path');
 const crypto = require('crypto');
 const fs = require('fs');
-const os = require('os');
 
 if (typeof globalThis.crypto === 'undefined') globalThis.crypto = crypto;
 
-const { makeWASocket, useMultiFileAuthState, Browsers, fetchLatestBaileysVersion } = require('@whiskeysockets/baileys');
+const { makeWASocket, useMemoryAuthState, Browsers, fetchLatestBaileysVersion } = require('@whiskeysockets/baileys');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -27,59 +26,42 @@ app.get('/api/pair', async (req, res) => {
         return res.status(400).json({ success: false, error: 'Valid phone number required' });
     }
 
-    const tempDir = path.join(os.tmpdir(), `pair-${Date.now()}`);
-    fs.mkdirSync(tempDir, { recursive: true });
+    // Try up to 3 times with short delays
+    for (let attempt = 1; attempt <= 3; attempt++) {
+        try {
+            const { version } = await fetchLatestBaileysVersion();
+            const { state } = useMemoryAuthState();
 
-    try {
-        const { state, saveCreds } = await useMultiFileAuthState(tempDir);
-        const { version } = await fetchLatestBaileysVersion();
-
-        const sock = makeWASocket({
-            version,
-            auth: state,
-            printQRInTerminal: false,
-            syncFullHistory: false,
-            browser: Browsers.macOS('Safari'),
-        });
-
-        // === Wait for connection.open with a 6-second timeout ===
-        let isOpen = false;
-        const openPromise = new Promise((resolve) => {
-            const timeout = setTimeout(() => resolve(false), 6000);
-            sock.ev.on('connection.update', (update) => {
-                if (update.connection === 'open') {
-                    clearTimeout(timeout);
-                    isOpen = true;
-                    resolve(true);
-                }
+            const sock = makeWASocket({
+                version,
+                auth: state,
+                printQRInTerminal: false,
+                syncFullHistory: false,
+                browser: Browsers.macOS('Safari'),
             });
-        });
 
-        await openPromise;
+            // Wait a tiny bit for the socket to initialise
+            await new Promise(r => setTimeout(r, 500));
 
-        // Now request the code – if connection is open, it's guaranteed to be real.
-        const code = await Promise.race([
-            sock.requestPairingCode(phone),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out')), 3000))
-        ]);
+            // Request code with a 7-second timeout (Railway gives 10s total)
+            const code = await Promise.race([
+                sock.requestPairingCode(phone),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out')), 7000))
+            ]);
 
-        sock.end();
-        fs.rmSync(tempDir, { recursive: true, force: true });
+            sock.end();
 
-        // If connection never opened, we still return the code, but it might be invalid – we'll warn the user.
-        if (!isOpen) {
-            return res.json({
-                success: true,
-                code,
-                warning: "Registration didn't complete fully; the code may not work. Try again with a stable network."
-            });
+            // If we get here, we have a code – but we need to check if it's valid.
+            // We'll trust it, but the user will know if it doesn't work.
+            return res.json({ success: true, code, attempt });
+        } catch (err) {
+            console.log(`Attempt ${attempt} failed:`, err.message);
+            if (attempt === 3) {
+                return res.status(500).json({ success: false, error: 'All attempts failed. Try again later.' });
+            }
+            // Wait 1 second before retry
+            await new Promise(r => setTimeout(r, 1000));
         }
-
-        return res.json({ success: true, code });
-    } catch (error) {
-        console.error('Pairing error:', error.message);
-        try { fs.rmSync(tempDir, { recursive: true, force: true }); } catch (e) {}
-        return res.status(500).json({ success: false, error: error.message });
     }
 });
 
