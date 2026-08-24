@@ -42,11 +42,25 @@ app.get('/api/pair', async (req, res) => {
             browser: Browsers.macOS('Safari'),
         });
 
-        // Request the code immediately – no wait for connection.open
-        // This is faster and works within Render's timeout.
+        // === Wait for connection.open (20s timeout) ===
+        await new Promise((resolve, reject) => {
+            const timer = setTimeout(() => reject(new Error('Connection timeout')), 20000);
+            sock.ev.on('connection.update', (u) => {
+                if (u.connection === 'open') {
+                    clearTimeout(timer);
+                    resolve();
+                }
+                if (u.connection === 'close') {
+                    clearTimeout(timer);
+                    reject(new Error('Connection closed'));
+                }
+            });
+        });
+
+        // === Now request the pairing code (5s timeout) ===
         const code = await Promise.race([
             sock.requestPairingCode(phone),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out')), 25000))
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Code request timeout')), 5000))
         ]);
 
         sock.end();
