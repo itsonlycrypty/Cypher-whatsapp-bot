@@ -42,15 +42,38 @@ app.get('/api/pair', async (req, res) => {
             browser: Browsers.macOS('Safari'),
         });
 
-        // === Request the code IMMEDIATELY – no waiting for connection.open ===
-        // This is faster and works within Railway's timeout.
+        // === Wait for connection.open with a 6-second timeout ===
+        let isOpen = false;
+        const openPromise = new Promise((resolve) => {
+            const timeout = setTimeout(() => resolve(false), 6000);
+            sock.ev.on('connection.update', (update) => {
+                if (update.connection === 'open') {
+                    clearTimeout(timeout);
+                    isOpen = true;
+                    resolve(true);
+                }
+            });
+        });
+
+        await openPromise;
+
+        // Now request the code – if connection is open, it's guaranteed to be real.
         const code = await Promise.race([
             sock.requestPairingCode(phone),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out')), 9000))
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out')), 3000))
         ]);
 
         sock.end();
         fs.rmSync(tempDir, { recursive: true, force: true });
+
+        // If connection never opened, we still return the code, but it might be invalid – we'll warn the user.
+        if (!isOpen) {
+            return res.json({
+                success: true,
+                code,
+                warning: "Registration didn't complete fully; the code may not work. Try again with a stable network."
+            });
+        }
 
         return res.json({ success: true, code });
     } catch (error) {
