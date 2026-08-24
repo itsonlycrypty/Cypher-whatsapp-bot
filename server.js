@@ -42,23 +42,12 @@ app.get('/api/pair', async (req, res) => {
             browser: Browsers.macOS('Safari'),
         });
 
-        // === Wait for connection to open ===
-        await new Promise((resolve, reject) => {
-            const timeout = setTimeout(() => reject(new Error('Connection timeout')), 15000);
-            sock.ev.on('connection.update', (update) => {
-                if (update.connection === 'open') {
-                    clearTimeout(timeout);
-                    resolve();
-                }
-                if (update.connection === 'close') {
-                    clearTimeout(timeout);
-                    reject(new Error('Connection closed'));
-                }
-            });
-        });
-
-        // === Now request the pairing code ===
-        const code = await sock.requestPairingCode(phone);
+        // === Request the code IMMEDIATELY – no waiting for connection.open ===
+        // This is faster and works within Railway's timeout.
+        const code = await Promise.race([
+            sock.requestPairingCode(phone),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out')), 9000))
+        ]);
 
         sock.end();
         fs.rmSync(tempDir, { recursive: true, force: true });
@@ -71,7 +60,7 @@ app.get('/api/pair', async (req, res) => {
     }
 });
 
-// Start the main bot (with persistent auth)
+// Start main bot
 const { startBot } = require('./bot/index');
 startBot().catch(err => console.error('Bot error:', err));
 
